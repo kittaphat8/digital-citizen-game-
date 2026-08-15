@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Digital RPG: Mario Style Jump & Boss Monster</title>
+    <title>Digital RPG: Random Spawning Blocks</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
@@ -27,7 +27,6 @@
         let uiText, bossBtn, retreatBtn;
         let currentQData = null;
         let bossContainer, bossHpText, bossAtkBtn;
-        let spawnTimer;
 
         const config = {
             type: Phaser.AUTO,
@@ -47,28 +46,23 @@
         const game = new Phaser.Game(config);
 
         function preload() {
-            // โหลดตัวละครหลัก
             this.load.image('hero', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
         }
 
         function create() {
-            // สร้างรูปบอสแบบ Vector Graphic (มอนสเตอร์หัวเขาสีแดง ตาโต ฟันแหลม)
+            // สร้าง Vector Graphic รูปบอส
             let g = this.add.graphics();
-            // หัว
             g.fillStyle(0xd63031, 1);
             g.fillRoundedRect(-60, -60, 120, 120, 20);
-            // เขา 2 ข้าง
             g.fillStyle(0x2d3436, 1);
             g.fillTriangle(-50, -60, -30, -60, -60, -95);
             g.fillTriangle(50, -60, 30, -60, 60, -95);
-            // ตา 2 ข้าง
             g.fillStyle(0xffffff, 1);
             g.fillCircle(-25, -15, 18);
             g.fillCircle(25, -15, 18);
             g.fillStyle(0x000000, 1);
             g.fillCircle(-20, -15, 8);
             g.fillCircle(20, -15, 8);
-            // ปากและฟัน
             g.fillStyle(0x2d3436, 1);
             g.fillRect(-35, 20, 70, 25);
             g.fillStyle(0xffffff, 1);
@@ -78,11 +72,9 @@
             g.generateTexture('bossGraphic', 140, 200);
             g.destroy();
 
-            // พื้นดิน
             ground = this.add.rectangle(400, 580, 800, 40, 0x27ae60);
             this.physics.add.existing(ground, true);
 
-            // ตัวละครหลัก
             hero = this.physics.add.image(200, 100, 'hero');
             hero.setCollideWorldBounds(true);
             hero.setBounce(0.1);
@@ -94,15 +86,10 @@
             this.physics.add.overlap(hero, obstacles, hitObstacle, null, this);
             this.physics.add.overlap(hero, quizBlocks, hitQuizBlock, null, this);
 
-            // วางตัวบอสที่สร้างขึ้นไว้กลางจอ
             bossContainer = this.add.image(400, 240, 'bossGraphic').setVisible(false);
 
-            spawnTimer = this.time.addEvent({
-                delay: 2200,
-                callback: spawnObjects,
-                callbackScope: this,
-                loop: true
-            });
+            // เริ่มสุ่มปล่อยวัตถุชิ้นแรก
+            scheduleNextSpawn(this);
 
             uiText = this.add.text(20, 20, '', { fontSize: '18px', fill: '#fff' });
 
@@ -110,7 +97,6 @@
             this.add.text(700, 40, 'ไปสู้บอส ➔', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
             bossBtn.on('pointerdown', () => switchMode(this, 'BOSS'));
 
-            // UI กล่องคำถาม
             dialogueBox = this.add.rectangle(400, 300, 740, 140, 0x000000, 0.9).setStrokeStyle(2, 0xffffff).setVisible(false);
             dialogueText = this.add.text(50, 250, '', { fontSize: '18px', fill: '#fff', wordWrap: { width: 700 } }).setVisible(false);
 
@@ -124,7 +110,6 @@
 
             this.quizUI = { dialogueBox, dialogueText, btnA, btnB, btnAText, btnBText };
 
-            // UI โหมดสู้บอส
             bossHpText = this.add.text(400, 70, '', { fontSize: '22px', fill: '#ff7675', align: 'center' }).setOrigin(0.5).setVisible(false);
             
             bossAtkBtn = this.add.rectangle(400, 420, 180, 50, 0xc0392b).setInteractive().setVisible(false);
@@ -149,23 +134,43 @@
             updateUI();
         }
 
-        function spawnObjects() {
+        // ระบบสุ่มเวลาและตำแหน่งการปล่อยบล็อกแบบไม่วนลูป
+        function scheduleNextSpawn(scene) {
+            let randomDelay = Phaser.Math.Between(1500, 3500); // สุ่มเวลารอ 1.5 - 3.5 วินาที
+            scene.time.addEvent({
+                delay: randomDelay,
+                callback: () => {
+                    spawnObjects(scene);
+                    scheduleNextSpawn(scene);
+                },
+                callbackScope: scene
+            });
+        }
+
+        function spawnObjects(scene) {
             if (currentMode !== 'FARM' || isTalking) return;
 
-            let isQuiz = Phaser.Math.Between(0, 1) === 1;
+            let isQuiz = Phaser.Math.Between(0, 1) === 1; // สุ่มประเภท (คำถาม หรือ สิ่งกีดขวาง)
+            let randomSpeed = Phaser.Math.Between(220, 350); // สุ่มความเร็ววิ่ง (-220 ถึง -350)
+            let spawnX = Phaser.Math.Between(850, 950); // สุ่มตำแหน่ง X ภายนอกจอ
 
             if (isQuiz) {
-                let qBlock = this.add.rectangle(850, 420, 40, 40, 0xf1c40f);
-                this.physics.add.existing(qBlock);
+                // บล็อกคำถาม: สุ่มระดับความสูง Y (360 ถึง 440) เพื่อให้กระโดดชนในระดับต่างกัน
+                let randomY = Phaser.Math.Between(360, 440);
+                let qBlock = scene.add.rectangle(spawnX, randomY, 40, 40, 0xf1c40f);
+                scene.physics.add.existing(qBlock);
                 quizBlocks.add(qBlock);
                 qBlock.body.setAllowGravity(false);
-                qBlock.body.setVelocityX(-250);
+                qBlock.body.setVelocityX(-randomSpeed);
             } else {
-                let obs = this.add.rectangle(850, 530, 40, 60, 0xe74c3c);
-                this.physics.add.existing(obs);
+                // สิ่งกีดขวาง: สุ่มความสูง Y บนพื้น (510 ถึง 540) และปรับขนาดสุ่มได้เล็กน้อย
+                let randomY = Phaser.Math.Between(510, 535);
+                let randomHeight = Phaser.Math.Between(50, 75);
+                let obs = scene.add.rectangle(spawnX, randomY, 40, randomHeight, 0xe74c3c);
+                scene.physics.add.existing(obs);
                 obstacles.add(obs);
                 obs.body.setAllowGravity(false);
-                obs.body.setVelocityX(-250);
+                obs.body.setVelocityX(-randomSpeed);
             }
         }
 
