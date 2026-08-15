@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Digital RPG: Random Spawning Blocks</title>
+    <title>Digital RPG: Dynamic Spawning Blocks</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
@@ -88,7 +88,7 @@
 
             bossContainer = this.add.image(400, 240, 'bossGraphic').setVisible(false);
 
-            // เริ่มสุ่มปล่อยวัตถุชิ้นแรก
+            // เริ่มวนสุ่มการปล่อยสิ่งกีดขวาง
             scheduleNextSpawn(this);
 
             uiText = this.add.text(20, 20, '', { fontSize: '18px', fill: '#fff' });
@@ -134,39 +134,37 @@
             updateUI();
         }
 
-        // ระบบสุ่มเวลาและตำแหน่งการปล่อยบล็อกแบบไม่วนลูป
+        // ระบบสุ่มเวลาเกิดแบบต่อเนื่องไม่ซ้ำรอบ
         function scheduleNextSpawn(scene) {
-            let randomDelay = Phaser.Math.Between(1500, 3500); // สุ่มเวลารอ 1.5 - 3.5 วินาที
-            scene.time.addEvent({
-                delay: randomDelay,
-                callback: () => {
-                    spawnObjects(scene);
-                    scheduleNextSpawn(scene);
-                },
-                callbackScope: scene
+            let nextDelay = Phaser.Math.Between(1200, 3200); // สุ่มเวลาหน่วง 1.2 - 3.2 วินาที
+            scene.time.delayedCall(nextDelay, () => {
+                spawnObjects(scene);
+                scheduleNextSpawn(scene);
             });
         }
 
         function spawnObjects(scene) {
             if (currentMode !== 'FARM' || isTalking) return;
 
-            let isQuiz = Phaser.Math.Between(0, 1) === 1; // สุ่มประเภท (คำถาม หรือ สิ่งกีดขวาง)
-            let randomSpeed = Phaser.Math.Between(220, 350); // สุ่มความเร็ววิ่ง (-220 ถึง -350)
-            let spawnX = Phaser.Math.Between(850, 950); // สุ่มตำแหน่ง X ภายนอกจอ
+            let isQuiz = Math.random() < 0.5;
+            let randomSpeed = Phaser.Math.Between(200, 380); 
+            let spawnX = Phaser.Math.Between(830, 950); 
 
             if (isQuiz) {
-                // บล็อกคำถาม: สุ่มระดับความสูง Y (360 ถึง 440) เพื่อให้กระโดดชนในระดับต่างกัน
-                let randomY = Phaser.Math.Between(360, 440);
+                // บล็อกคำถาม: สุ่มตำแหน่งความสูง Y ตั้งแต่ช่วงกลางถึงระดับกระโดด (280 ถึง 440)
+                let randomY = Phaser.Math.Between(280, 440);
                 let qBlock = scene.add.rectangle(spawnX, randomY, 40, 40, 0xf1c40f);
                 scene.physics.add.existing(qBlock);
                 quizBlocks.add(qBlock);
                 qBlock.body.setAllowGravity(false);
                 qBlock.body.setVelocityX(-randomSpeed);
             } else {
-                // สิ่งกีดขวาง: สุ่มความสูง Y บนพื้น (510 ถึง 540) และปรับขนาดสุ่มได้เล็กน้อย
-                let randomY = Phaser.Math.Between(510, 535);
-                let randomHeight = Phaser.Math.Between(50, 75);
-                let obs = scene.add.rectangle(spawnX, randomY, 40, randomHeight, 0xe74c3c);
+                // สิ่งกีดขวาง: สุ่มความสูงของเสาตึก/สิ่งกีดขวาง (30 ถึง 85 px) และคำนวณตำแหน่ง Y ให้แนบพื้นพอดี
+                let randomHeight = Phaser.Math.Between(30, 85);
+                let groundTopY = 560;
+                let calculatedY = groundTopY - (randomHeight / 2);
+
+                let obs = scene.add.rectangle(spawnX, calculatedY, 40, randomHeight, 0xe74c3c);
                 scene.physics.add.existing(obs);
                 obstacles.add(obs);
                 obs.body.setAllowGravity(false);
