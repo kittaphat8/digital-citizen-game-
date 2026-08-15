@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Digital Citizen RPG</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    </style>
+</head>
+<body>
+    <script>
+        let hero;
+        let cursors;
+        let npcs;
+        let dialogueBox;
+        let dialogueText;
+        let isTalking = false;
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '#34495e',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        function preload() {
+            this.load.image('hero_image', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
+        }
+
+        function create() {
+            npcs = this.physics.add.staticGroup();
+            
+            // NPC 1: การป้องกันตนเอง
+            let npc1 = this.add.rectangle(300, 200, 40, 40, 0xe67e22);
+            this.physics.add.existing(npc1, true);
+            npc1.dialogue = "เควสต์ 1: มีคนแปลกหน้าทักมาขอรหัสผ่านเกมของคุณ โดยอ้างว่าจะเติมเงินให้ฟรี คุณจะให้หรือไม่?";
+            npcs.add(npc1);
+
+            // NPC 2: การเคารพผู้อื่น
+            let npc2 = this.add.rectangle(600, 400, 40, 40, 0x9b59b6);
+            this.physics.add.existing(npc2, true);
+            npc2.dialogue = "เควสต์ 2: เพื่อนโพสต์รูปร่างที่ไม่เหมาะสมของคนอื่นลงกลุ่ม คุณจะทำอย่างไร?";
+            npcs.add(npc2);
+
+            hero = this.physics.add.image(400, 500, 'hero_image');
+            hero.setCollideWorldBounds(true);
+
+            this.physics.add.collider(hero, npcs);
+
+            dialogueBox = this.add.rectangle(400, 500, 700, 120, 0x000000, 0.8).setStrokeStyle(2, 0xffffff);
+            dialogueText = this.add.text(70, 460, '', { fontSize: '18px', fill: '#fff', wordWrap: { width: 660 } });
+            dialogueBox.setVisible(false);
+            dialogueText.setVisible(false);
+
+            cursors = this.input.keyboard.createCursorKeys();
+
+            this.input.keyboard.on('keydown-SPACE', () => {
+                if (isTalking) {
+                    dialogueBox.setVisible(false);
+                    dialogueText.setVisible(false);
+                    isTalking = false;
+                } else {
+                    npcs.getChildren().forEach((npc) => {
+                        let distance = Phaser.Math.Distance.Between(hero.x, hero.y, npc.x, npc.y);
+                        if (distance < 60) {
+                            dialogueText.setText(npc.dialogue + "\n\n(อภิปรายกับลูกขุน -> กด Spacebar เพื่อปิด)");
+                            dialogueBox.setVisible(true);
+                            dialogueText.setVisible(true);
+                            isTalking = true;
+                        }
+                    });
+                }
+            });
+        }
+
+        function update() {
+            if (isTalking) {
+                hero.setVelocity(0, 0);
+                return;
+            }
+
+            hero.setVelocity(0);
+
+            if (cursors.left.isDown) {
+                hero.setVelocityX(-160);
+            } else if (cursors.right.isDown) {
+                hero.setVelocityX(160);
+            }
+
+            if (cursors.up.isDown) {
+                hero.setVelocityY(-160);
+            } else if (cursors.down.isDown) {
+                hero.setVelocityY(160);
+            }
+        }
+    </script>
+</body>
+</html>
 
