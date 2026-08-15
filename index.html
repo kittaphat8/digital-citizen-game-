@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Digital RPG: Mario Style Jump & Boss</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
@@ -36,7 +37,7 @@
             physics: { 
                 default: 'arcade', 
                 arcade: { 
-                    gravity: { y: 1000 }, // ระบบแรงโน้มถ่วงสำหรับตัวละคร
+                    gravity: { y: 1000 }, 
                     debug: false 
                 } 
             },
@@ -50,26 +51,21 @@
         }
 
         function create() {
-            // 1. พื้นดินสำหรับยึดตัวละคร
             ground = this.add.rectangle(400, 580, 800, 40, 0x27ae60);
             this.physics.add.existing(ground, true);
 
-            // 2. ตัวละครหลัก (ตกลงมาจากบนลงพื้น)
             hero = this.physics.add.image(200, 100, 'hero');
             hero.setCollideWorldBounds(true);
             hero.setBounce(0.1);
 
-            // ชนพื้นดิน
             this.physics.add.collider(hero, ground);
 
             obstacles = this.physics.add.group();
             quizBlocks = this.physics.add.group();
 
-            // ตรวจจับการชน
             this.physics.add.overlap(hero, obstacles, hitObstacle, null, this);
             this.physics.add.overlap(hero, quizBlocks, hitQuizBlock, null, this);
 
-            // สุ่มสร้างวัตถุปล่อยออกมาทางขวา
             spawnTimer = this.time.addEvent({
                 delay: 2200,
                 callback: spawnObjects,
@@ -77,15 +73,12 @@
                 loop: true
             });
 
-            // UI สถานะตัวละคร
             uiText = this.add.text(20, 20, '', { fontSize: '18px', fill: '#fff' });
 
-            // ปุ่มไปสู้บอส
             bossBtn = this.add.rectangle(700, 40, 140, 40, 0xe74c3c).setInteractive();
             this.add.text(700, 40, 'ไปสู้บอส ➔', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
             bossBtn.on('pointerdown', () => switchMode(this, 'BOSS'));
 
-            // UI กล่องคำถาม
             dialogueBox = this.add.rectangle(400, 300, 740, 140, 0x000000, 0.9).setStrokeStyle(2, 0xffffff).setVisible(false);
             dialogueText = this.add.text(50, 250, '', { fontSize: '18px', fill: '#fff', wordWrap: { width: 700 } }).setVisible(false);
 
@@ -99,7 +92,6 @@
 
             this.quizUI = { dialogueBox, dialogueText, btnA, btnB, btnAText, btnBText };
 
-            // UI โหมดบอส
             bossHpText = this.add.text(400, 150, '', { fontSize: '22px', fill: '#ff7675' }).setOrigin(0.5).setVisible(false);
             bossAtkBtn = this.add.rectangle(400, 350, 180, 60, 0xc0392b).setInteractive().setVisible(false);
             let bossAtkText = this.add.text(400, 350, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
@@ -112,7 +104,6 @@
 
             cursors = this.input.keyboard.createCursorKeys();
 
-            // รองรับสัมผัสหน้าจอเพื่อกระโดด (สำหรับมือถือ/iPad)
             this.input.on('pointerdown', (pointer) => {
                 if (currentMode === 'FARM' && !isTalking && hero.body.touching.down && pointer.y > 100) {
                     hero.setVelocityY(-550);
@@ -122,30 +113,26 @@
             updateUI();
         }
 
-        // สุ่มสร้างวัตถุวิ่งตรงขนานพื้นมาหาตัวละคร
         function spawnObjects() {
             if (currentMode !== 'FARM' || isTalking) return;
 
             let isQuiz = Phaser.Math.Between(0, 1) === 1;
 
             if (isQuiz) {
-                // บล็อกคำถามสีเหลือง (ลอยระดับกลาง)
                 let qBlock = this.add.rectangle(850, 420, 40, 40, 0xf1c40f);
                 this.physics.add.existing(qBlock);
                 quizBlocks.add(qBlock);
-                qBlock.body.setAllowGravity(false); // ปิดแรงโน้มถ่วงไม่ให้ตกพื้น
+                qBlock.body.setAllowGravity(false);
                 qBlock.body.setVelocityX(-250);
             } else {
-                // สิ่งกีดขวางสีแดง (ตั้งระดับพื้น)
                 let obs = this.add.rectangle(850, 530, 40, 60, 0xe74c3c);
                 this.physics.add.existing(obs);
                 obstacles.add(obs);
-                obs.body.setAllowGravity(false); // ปิดแรงโน้มถ่วงไม่ให้ตกพื้น
+                obs.body.setAllowGravity(false);
                 obs.body.setVelocityX(-250);
             }
         }
 
-        // ชนสิ่งกีดขวางแล้วเลือดลด
         function hitObstacle(heroObj, obs) {
             obs.destroy();
             player.hp -= 20;
@@ -159,7 +146,6 @@
             updateUI();
         }
 
-        // ชนบล็อกคำถาม
         function hitQuizBlock(heroObj, qBlock) {
             qBlock.destroy();
             if (!isTalking) {
@@ -261,7 +247,6 @@
         function update() {
             if (currentMode !== 'FARM' || isTalking) return;
 
-            // ควบคุมการกระโดดสไตล์มาริโอ้ด้วยปุ่ม Up
             if (cursors.up.isDown && hero.body.touching.down) {
                 hero.setVelocityY(-550);
             }
