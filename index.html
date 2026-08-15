@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Digital RPG: Mario Style Jump & Boss Sprite</title>
+    <title>Digital RPG: Mario Style Jump & Boss Monster</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
@@ -26,7 +26,7 @@
         let dialogueBox, dialogueText, isTalking = false;
         let uiText, bossBtn, retreatBtn;
         let currentQData = null;
-        let bossSprite, bossHpText, bossAtkBtn, bossAtkText;
+        let bossContainer, bossHpText, bossAtkBtn;
         let spawnTimer;
 
         const config = {
@@ -47,12 +47,37 @@
         const game = new Phaser.Game(config);
 
         function preload() {
-            // โหลดรูปตัวละครผู้เล่น และ ตัวละครบอส
+            // โหลดตัวละครหลัก
             this.load.image('hero', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
-            this.load.image('bossPic', 'https://labs.phaser.io/assets/sprites/space-baddie.png');
         }
 
         function create() {
+            // สร้างรูปบอสแบบ Vector Graphic (มอนสเตอร์หัวเขาสีแดง ตาโต ฟันแหลม)
+            let g = this.add.graphics();
+            // หัว
+            g.fillStyle(0xd63031, 1);
+            g.fillRoundedRect(-60, -60, 120, 120, 20);
+            // เขา 2 ข้าง
+            g.fillStyle(0x2d3436, 1);
+            g.fillTriangle(-50, -60, -30, -60, -60, -95);
+            g.fillTriangle(50, -60, 30, -60, 60, -95);
+            // ตา 2 ข้าง
+            g.fillStyle(0xffffff, 1);
+            g.fillCircle(-25, -15, 18);
+            g.fillCircle(25, -15, 18);
+            g.fillStyle(0x000000, 1);
+            g.fillCircle(-20, -15, 8);
+            g.fillCircle(20, -15, 8);
+            // ปากและฟัน
+            g.fillStyle(0x2d3436, 1);
+            g.fillRect(-35, 20, 70, 25);
+            g.fillStyle(0xffffff, 1);
+            g.fillTriangle(-25, 20, -15, 20, -20, 32);
+            g.fillTriangle(15, 20, 25, 20, 20, 32);
+
+            g.generateTexture('bossGraphic', 140, 200);
+            g.destroy();
+
             // พื้นดิน
             ground = this.add.rectangle(400, 580, 800, 40, 0x27ae60);
             this.physics.add.existing(ground, true);
@@ -69,8 +94,8 @@
             this.physics.add.overlap(hero, obstacles, hitObstacle, null, this);
             this.physics.add.overlap(hero, quizBlocks, hitQuizBlock, null, this);
 
-            // ตัวบอส (สไปรต์ตัวละครบอสสีแดงขนาดยักษ์)
-            bossSprite = this.add.image(400, 250, 'bossPic').setScale(3).setVisible(false);
+            // วางตัวบอสที่สร้างขึ้นไว้กลางจอ
+            bossContainer = this.add.image(400, 240, 'bossGraphic').setVisible(false);
 
             spawnTimer = this.time.addEvent({
                 delay: 2200,
@@ -99,13 +124,16 @@
 
             this.quizUI = { dialogueBox, dialogueText, btnA, btnB, btnAText, btnBText };
 
-            // UI โหมดบอส
-            bossHpText = this.add.text(400, 80, '', { fontSize: '22px', fill: '#ff7675', align: 'center' }).setOrigin(0.5).setVisible(false);
-            bossAtkBtn = this.add.rectangle(400, 420, 180, 60, 0xc0392b).setInteractive().setVisible(false);
-            bossAtkText = this.add.text(400, 420, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+            // UI โหมดสู้บอส
+            bossHpText = this.add.text(400, 70, '', { fontSize: '22px', fill: '#ff7675', align: 'center' }).setOrigin(0.5).setVisible(false);
+            
+            bossAtkBtn = this.add.rectangle(400, 420, 180, 50, 0xc0392b).setInteractive().setVisible(false);
+            let bossAtkText = this.add.text(400, 420, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
 
-            retreatBtn = this.add.rectangle(400, 500, 220, 40, 0x34495e).setInteractive().setVisible(false);
-            let retreatText = this.add.text(400, 500, '🏃 หนีกลับไปเก็บ Lv.', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+            retreatBtn = this.add.rectangle(400, 490, 220, 40, 0x34495e).setInteractive().setVisible(false);
+            let retreatText = this.add.text(400, 490, '🏃 หนีกลับไปเก็บ Lv.', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+
+            this.bossUI = { bossAtkText, retreatText };
 
             bossAtkBtn.on('pointerdown', () => attackBoss(this));
             retreatBtn.on('pointerdown', () => switchMode(this, 'FARM'));
@@ -210,11 +238,12 @@
             ground.setVisible(isFarm);
             bossBtn.setVisible(isFarm);
 
-            bossSprite.setVisible(!isFarm);
+            bossContainer.setVisible(!isFarm);
             bossHpText.setVisible(!isFarm);
             bossAtkBtn.setVisible(!isFarm);
-            bossAtkText.setVisible(!isFarm);
+            scene.bossUI.bossAtkText.setVisible(!isFarm);
             retreatBtn.setVisible(!isFarm);
+            scene.bossUI.retreatText.setVisible(!isFarm);
 
             if (!isFarm) {
                 clearAllObjects();
