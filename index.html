@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Digital RPG: Mario Style Jump & Boss</title>
+    <title>Digital RPG: Mario Style Jump & Boss Sprite</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
@@ -26,7 +26,7 @@
         let dialogueBox, dialogueText, isTalking = false;
         let uiText, bossBtn, retreatBtn;
         let currentQData = null;
-        let bossHpText, bossAtkBtn;
+        let bossSprite, bossHpText, bossAtkBtn, bossAtkText;
         let spawnTimer;
 
         const config = {
@@ -47,17 +47,20 @@
         const game = new Phaser.Game(config);
 
         function preload() {
+            // โหลดรูปตัวละครผู้เล่น และ ตัวละครบอส
             this.load.image('hero', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
+            this.load.image('bossPic', 'https://labs.phaser.io/assets/sprites/space-baddie.png');
         }
 
         function create() {
+            // พื้นดิน
             ground = this.add.rectangle(400, 580, 800, 40, 0x27ae60);
             this.physics.add.existing(ground, true);
 
+            // ตัวละครหลัก
             hero = this.physics.add.image(200, 100, 'hero');
             hero.setCollideWorldBounds(true);
             hero.setBounce(0.1);
-
             this.physics.add.collider(hero, ground);
 
             obstacles = this.physics.add.group();
@@ -65,6 +68,9 @@
 
             this.physics.add.overlap(hero, obstacles, hitObstacle, null, this);
             this.physics.add.overlap(hero, quizBlocks, hitQuizBlock, null, this);
+
+            // ตัวบอส (สไปรต์ตัวละครบอสสีแดงขนาดยักษ์)
+            bossSprite = this.add.image(400, 250, 'bossPic').setScale(3).setVisible(false);
 
             spawnTimer = this.time.addEvent({
                 delay: 2200,
@@ -79,6 +85,7 @@
             this.add.text(700, 40, 'ไปสู้บอส ➔', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
             bossBtn.on('pointerdown', () => switchMode(this, 'BOSS'));
 
+            // UI กล่องคำถาม
             dialogueBox = this.add.rectangle(400, 300, 740, 140, 0x000000, 0.9).setStrokeStyle(2, 0xffffff).setVisible(false);
             dialogueText = this.add.text(50, 250, '', { fontSize: '18px', fill: '#fff', wordWrap: { width: 700 } }).setVisible(false);
 
@@ -92,12 +99,13 @@
 
             this.quizUI = { dialogueBox, dialogueText, btnA, btnB, btnAText, btnBText };
 
-            bossHpText = this.add.text(400, 150, '', { fontSize: '22px', fill: '#ff7675' }).setOrigin(0.5).setVisible(false);
-            bossAtkBtn = this.add.rectangle(400, 350, 180, 60, 0xc0392b).setInteractive().setVisible(false);
-            let bossAtkText = this.add.text(400, 350, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+            // UI โหมดบอส
+            bossHpText = this.add.text(400, 80, '', { fontSize: '22px', fill: '#ff7675', align: 'center' }).setOrigin(0.5).setVisible(false);
+            bossAtkBtn = this.add.rectangle(400, 420, 180, 60, 0xc0392b).setInteractive().setVisible(false);
+            bossAtkText = this.add.text(400, 420, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
 
-            retreatBtn = this.add.rectangle(400, 450, 220, 40, 0x34495e).setInteractive().setVisible(false);
-            let retreatText = this.add.text(400, 450, '🏃 หนีกลับไปเก็บ Lv.', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+            retreatBtn = this.add.rectangle(400, 500, 220, 40, 0x34495e).setInteractive().setVisible(false);
+            let retreatText = this.add.text(400, 500, '🏃 หนีกลับไปเก็บ Lv.', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
 
             bossAtkBtn.on('pointerdown', () => attackBoss(this));
             retreatBtn.on('pointerdown', () => switchMode(this, 'FARM'));
@@ -202,8 +210,10 @@
             ground.setVisible(isFarm);
             bossBtn.setVisible(isFarm);
 
+            bossSprite.setVisible(!isFarm);
             bossHpText.setVisible(!isFarm);
             bossAtkBtn.setVisible(!isFarm);
+            bossAtkText.setVisible(!isFarm);
             retreatBtn.setVisible(!isFarm);
 
             if (!isFarm) {
