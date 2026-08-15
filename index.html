@@ -1,298 +1,880 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Digital RPG: Dynamic Spawning Blocks</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIGITAL CITIZEN: BOSS BATTLE</title>
     <style>
-        body { margin: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
+        :root {
+            --bg-color: #0d0f17;
+            --panel-bg: #161a29;
+            --border-color: #2a324d;
+            --accent-gold: #ffcc00;
+            --accent-red: #ff3366;
+            --accent-green: #00ffcc;
+            --accent-blue: #0099ff;
+            --text-color: #f0f4fc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        #game-container {
+            width: 960px;
+            min-height: 640px;
+            background: radial-gradient(circle at center, #1b2238 0%, #090b10 100%);
+            border: 3px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 153, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            padding: 24px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Header Navigation */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: rgba(22, 26, 41, 0.8);
+            border-bottom: 2px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .user-stats-bar {
+            display: flex;
+            gap: 16px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .stat-badge {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Titles */
+        .title-large {
+            font-size: 32px;
+            font-weight: 900;
+            text-align: center;
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8a99ad;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #2a3459 0%, #161c33 100%);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .btn:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 0 12px rgba(0, 153, 255, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0099ff 0%, #0055ff 100%);
+            border-color: #66b2ff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff3366 0%, #cc0033 100%);
+            border-color: #ff6688;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #444;
+        }
+
+        /* Menu Grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 600px;
+            margin: 40px auto;
+        }
+
+        /* Boss Room Grid */
+        .boss-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            padding: 10px;
+        }
+
+        .boss-card {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .boss-card:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-4px);
+        }
+
+        .boss-card.locked {
+            filter: grayscale(0.8);
+            opacity: 0.6;
+        }
+
+        .boss-avatar {
+            font-size: 64px;
+            margin: 10px 0;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Battle Arena */
+        .battle-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 14, 26, 0.7);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            min-height: 220px;
+        }
+
+        .combatant-box {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 18px;
+            background: #090a10;
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            overflow: hidden;
+            margin: 6px 0;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .hp-fill { background: linear-gradient(90deg, #ff3366, #ff6600); }
+        .exp-fill { background: linear-gradient(90deg, #00ffcc, #0099ff); }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        /* VS & Combo */
+        .vs-box {
+            text-align: center;
+        }
+
+        .combo-badge {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        /* Quiz Panel */
+        .quiz-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        .question-tag {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            align-self: flex-start;
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .answer-btn {
+            background: #1a2238;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .answer-btn:hover {
+            background: #253254;
+            border-color: var(--accent-blue);
+        }
+
+        /* Floating Damage Text */
+        .damage-pop {
+            position: absolute;
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--accent-red);
+            text-shadow: 0 0 8px #000;
+            animation: floatUp 0.8s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.3); }
+            100% { opacity: 0; transform: translateY(-50px) scale(0.8); }
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);
+        }
     </style>
 </head>
 <body>
-    <script>
-        let player = { level: 1, exp: 0, maxExp: 50, hp: 100, maxHp: 100, atk: 25 };
-        let boss = { level: 1, hp: 150, maxHp: 150, atk: 15 };
 
-        let questionsBank = [
-            { q: "ถ้ามีคนทักมาขอรหัสผ่านเกม ควรทำอย่างไร?", a: ["ให้ทันที", "ปฏิเสธและบล็อก"], correct: 1 },
-            { q: "การด่าทอผู้อื่นออนไลน์เรียกว่าอะไร?", a: ["Cyberbullying", "Digital Citizen"], correct: 0 },
-            { q: "ก่อนแชร์ข่าวสาร ควรทำอย่างไร?", a: ["แชร์ทันที", "ตรวจสอบความจริง"], correct: 1 },
-            { q: "พบรูปที่ไม่เหมาะสมของเพื่อนในเน็ต ควรทำอย่างไร?", a: ["แชร์ต่อให้คนอื่นดู", "แจ้งเตือนผู้ปกครอง/ครู"], correct: 1 }
-        ];
+<div id="game-container">
 
-        let currentMode = 'FARM';
-        let hero, ground, obstacles, quizBlocks, cursors;
-        let dialogueBox, dialogueText, isTalking = false;
-        let uiText, bossBtn, retreatBtn;
-        let currentQData = null;
-        let bossContainer, bossHpText, bossAtkBtn;
+    <!-- GAME HEADER -->
+    <div class="game-header">
+        <div style="font-weight: 900; color: var(--accent-gold); font-size: 18px;">⚔️ DIGITAL CITIZEN</div>
+        <div class="user-stats-bar">
+            <div class="stat-badge" id="header-lvl">Lv. 1</div>
+            <div class="stat-badge" id="header-coin">🪙 0</div>
+            <div class="stat-badge" id="header-score">🏆 0</div>
+        </div>
+    </div>
 
-        const config = {
-            type: Phaser.AUTO,
-            width: 800,
-            height: 600,
-            backgroundColor: '#2c3e50',
-            physics: { 
-                default: 'arcade', 
-                arcade: { 
-                    gravity: { y: 1000 }, 
-                    debug: false 
-                } 
-            },
-            scene: { preload: preload, create: create, update: update }
-        };
+    <!-- MAIN MENU SCREEN -->
+    <div id="screen-menu" class="screen active">
+        <div style="margin: auto 0; text-align: center;">
+            <div class="title-large">⚔️ DIGITAL CITIZEN: BOSS BATTLE</div>
+            <div class="subtitle">เส้นทางสู่การเป็นพลเมืองดิจิทัล | RPG Quiz Game</div>
 
-        const game = new Phaser.Game(config);
+            <div class="menu-grid">
+                <button class="btn btn-primary" onclick="showScreen('boss-room')">⚔️ BOSS ROOM</button>
+                <button class="btn" onclick="openInfoModal('👤 CHARACTER STATS', getCharacterSummary())">👤 CHARACTER</button>
+                <button class="btn" onclick="openInfoModal('🎒 INVENTORY', getInventorySummary())">🎒 INVENTORY</button>
+                <button class="btn" onclick="openInfoModal('🛒 SHOP', 'ร้านค้ากำลังจะเปิดให้บริการในอัปเดตถัดไป!')">🛒 SHOP</button>
+                <button class="btn" onclick="openInfoModal('🏆 ACHIEVEMENTS', getAchievementSummary())">🏆 ACHIEVEMENT</button>
+                <button class="btn" onclick="resetSaveData()">🔄 RESET DATA</button>
+            </div>
+        </div>
+    </div>
 
-        function preload() {
-            this.load.image('hero', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
-        }
+    <!-- BOSS ROOM SCREEN -->
+    <div id="screen-boss-room" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2>🏰 เลือก Boss เพื่อเข้าสู่การต่อสู้</h2>
+            <button class="btn" onclick="showScreen('menu')">🔙 กลับหน้าหลัก</button>
+        </div>
+        <div class="boss-grid" id="boss-list-container"></div>
+    </div>
 
-        function create() {
-            // สร้าง Vector Graphic รูปบอส
-            let g = this.add.graphics();
-            g.fillStyle(0xd63031, 1);
-            g.fillRoundedRect(-60, -60, 120, 120, 20);
-            g.fillStyle(0x2d3436, 1);
-            g.fillTriangle(-50, -60, -30, -60, -60, -95);
-            g.fillTriangle(50, -60, 30, -60, 60, -95);
-            g.fillStyle(0xffffff, 1);
-            g.fillCircle(-25, -15, 18);
-            g.fillCircle(25, -15, 18);
-            g.fillStyle(0x000000, 1);
-            g.fillCircle(-20, -15, 8);
-            g.fillCircle(20, -15, 8);
-            g.fillStyle(0x2d3436, 1);
-            g.fillRect(-35, 20, 70, 25);
-            g.fillStyle(0xffffff, 1);
-            g.fillTriangle(-25, 20, -15, 20, -20, 32);
-            g.fillTriangle(15, 20, 25, 20, 20, 32);
+    <!-- BATTLE SCREEN -->
+    <div id="screen-battle" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div id="battle-phase-indicator" style="font-size: 14px; font-weight: bold; color: var(--accent-gold);">PHASE 1</div>
+            <button class="btn btn-danger" style="padding: 4px 12px; font-size: 12px;" onclick="surrenderBattle()">🏳️ ยอมแพ้</button>
+        </div>
 
-            g.generateTexture('bossGraphic', 140, 200);
-            g.destroy();
-
-            ground = this.add.rectangle(400, 580, 800, 40, 0x27ae60);
-            this.physics.add.existing(ground, true);
-
-            hero = this.physics.add.image(200, 100, 'hero');
-            hero.setCollideWorldBounds(true);
-            hero.setBounce(0.1);
-            this.physics.add.collider(hero, ground);
-
-            obstacles = this.physics.add.group();
-            quizBlocks = this.physics.add.group();
-
-            this.physics.add.overlap(hero, obstacles, hitObstacle, null, this);
-            this.physics.add.overlap(hero, quizBlocks, hitQuizBlock, null, this);
-
-            bossContainer = this.add.image(400, 240, 'bossGraphic').setVisible(false);
-
-            // เริ่มวนสุ่มการปล่อยสิ่งกีดขวาง
-            scheduleNextSpawn(this);
-
-            uiText = this.add.text(20, 20, '', { fontSize: '18px', fill: '#fff' });
-
-            bossBtn = this.add.rectangle(700, 40, 140, 40, 0xe74c3c).setInteractive();
-            this.add.text(700, 40, 'ไปสู้บอส ➔', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
-            bossBtn.on('pointerdown', () => switchMode(this, 'BOSS'));
-
-            dialogueBox = this.add.rectangle(400, 300, 740, 140, 0x000000, 0.9).setStrokeStyle(2, 0xffffff).setVisible(false);
-            dialogueText = this.add.text(50, 250, '', { fontSize: '18px', fill: '#fff', wordWrap: { width: 700 } }).setVisible(false);
-
-            let btnA = this.add.rectangle(250, 350, 250, 40, 0x2ecc71).setInteractive().setVisible(false);
-            let btnAText = this.add.text(250, 350, '', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-            let btnB = this.add.rectangle(550, 350, 250, 40, 0xe67e22).setInteractive().setVisible(false);
-            let btnBText = this.add.text(550, 350, '', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-
-            btnA.on('pointerdown', () => answerQuiz(0, this, btnA, btnB, btnAText, btnBText));
-            btnB.on('pointerdown', () => answerQuiz(1, this, btnA, btnB, btnAText, btnBText));
-
-            this.quizUI = { dialogueBox, dialogueText, btnA, btnB, btnAText, btnBText };
-
-            bossHpText = this.add.text(400, 70, '', { fontSize: '22px', fill: '#ff7675', align: 'center' }).setOrigin(0.5).setVisible(false);
-            
-            bossAtkBtn = this.add.rectangle(400, 420, 180, 50, 0xc0392b).setInteractive().setVisible(false);
-            let bossAtkText = this.add.text(400, 420, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-
-            retreatBtn = this.add.rectangle(400, 490, 220, 40, 0x34495e).setInteractive().setVisible(false);
-            let retreatText = this.add.text(400, 490, '🏃 หนีกลับไปเก็บ Lv.', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-
-            this.bossUI = { bossAtkText, retreatText };
-
-            bossAtkBtn.on('pointerdown', () => attackBoss(this));
-            retreatBtn.on('pointerdown', () => switchMode(this, 'FARM'));
-
-            cursors = this.input.keyboard.createCursorKeys();
-
-            this.input.on('pointerdown', (pointer) => {
-                if (currentMode === 'FARM' && !isTalking && hero.body.touching.down && pointer.y > 100) {
-                    hero.setVelocityY(-550);
-                }
-            });
-
-            updateUI();
-        }
-
-        // ระบบสุ่มเวลาเกิดแบบต่อเนื่องไม่ซ้ำรอบ
-        function scheduleNextSpawn(scene) {
-            let nextDelay = Phaser.Math.Between(1200, 3200); // สุ่มเวลาหน่วง 1.2 - 3.2 วินาที
-            scene.time.delayedCall(nextDelay, () => {
-                spawnObjects(scene);
-                scheduleNextSpawn(scene);
-            });
-        }
-
-        function spawnObjects(scene) {
-            if (currentMode !== 'FARM' || isTalking) return;
-
-            let isQuiz = Math.random() < 0.5;
-            let randomSpeed = Phaser.Math.Between(200, 380); 
-            let spawnX = Phaser.Math.Between(830, 950); 
-
-            if (isQuiz) {
-                // บล็อกคำถาม: สุ่มตำแหน่งความสูง Y ตั้งแต่ช่วงกลางถึงระดับกระโดด (280 ถึง 440)
-                let randomY = Phaser.Math.Between(280, 440);
-                let qBlock = scene.add.rectangle(spawnX, randomY, 40, 40, 0xf1c40f);
-                scene.physics.add.existing(qBlock);
-                quizBlocks.add(qBlock);
-                qBlock.body.setAllowGravity(false);
-                qBlock.body.setVelocityX(-randomSpeed);
-            } else {
-                // สิ่งกีดขวาง: สุ่มความสูงของเสาตึก/สิ่งกีดขวาง (30 ถึง 85 px) และคำนวณตำแหน่ง Y ให้แนบพื้นพอดี
-                let randomHeight = Phaser.Math.Between(30, 85);
-                let groundTopY = 560;
-                let calculatedY = groundTopY - (randomHeight / 2);
-
-                let obs = scene.add.rectangle(spawnX, calculatedY, 40, randomHeight, 0xe74c3c);
-                scene.physics.add.existing(obs);
-                obstacles.add(obs);
-                obs.body.setAllowGravity(false);
-                obs.body.setVelocityX(-randomSpeed);
-            }
-        }
-
-        function hitObstacle(heroObj, obs) {
-            obs.destroy();
-            player.hp -= 20;
-
-            if (player.hp <= 0) {
-                player.hp = 0;
-                alert("💔 เลือดหมด! คุณหมดสติ ฟื้นฟูเลือดแล้วเริ่มใหม่");
-                player.hp = player.maxHp;
-                clearAllObjects();
-            }
-            updateUI();
-        }
-
-        function hitQuizBlock(heroObj, qBlock) {
-            qBlock.destroy();
-            if (!isTalking) {
-                isTalking = true;
-                currentQData = questionsBank[Phaser.Math.Between(0, questionsBank.length - 1)];
+        <div class="battle-arena" id="arena-box">
+            <!-- PLAYER SIDE -->
+            <div class="combatant-box">
+                <div style="font-size: 48px;" id="player-avatar">🧙</div>
+                <div style="font-weight: bold;" id="player-name">PLAYER</div>
+                <div style="font-size: 12px; color: #8a99ad;" id="player-lvl-display">Lv. 1</div>
                 
-                let ui = this.quizUI;
-                ui.dialogueText.setText(`[กระโดดชนบล็อกคำถาม!]\n${currentQData.q}`);
-                ui.btnAText.setText(`A: ${currentQData.a[0]}`);
-                ui.btnBText.setText(`B: ${currentQData.a[1]}`);
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill hp-fill" id="player-hp-bar" style="width: 100%;"></div>
+                    <div class="progress-text" id="player-hp-text">500/500 HP</div>
+                </div>
+            </div>
 
-                ui.dialogueBox.setVisible(true);
-                ui.dialogueText.setVisible(true);
-                ui.btnA.setVisible(true);
-                ui.btnB.setVisible(true);
-                ui.btnAText.setVisible(true);
-                ui.btnBText.setVisible(true);
-            }
+            <!-- VS / COMBO -->
+            <div class="vs-box">
+                <div style="font-size: 28px; font-weight: 900; color: #556688;">VS</div>
+                <div class="combo-badge" id="combo-display" style="display: none;">x1 COMBO</div>
+            </div>
+
+            <!-- BOSS SIDE -->
+            <div class="combatant-box">
+                <div style="font-size: 56px;" id="boss-avatar">👾</div>
+                <div style="font-weight: bold; color: var(--accent-red);" id="boss-name">BOSS</div>
+                <div style="font-size: 12px; color: #8a99ad;" id="boss-lvl-display">Lv. 1</div>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill hp-fill" id="boss-hp-bar" style="width: 100%;"></div>
+                    <div class="progress-text" id="boss-hp-text">500/500 HP</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUIZ PANEL -->
+        <div class="quiz-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="question-tag" id="quiz-category">DIGITAL SAFETY</span>
+                <span style="font-size: 12px; color: #8a99ad;">ตอบถูกต้องเพื่อโจมตี Boss</span>
+            </div>
+            <div class="question-text" id="quiz-question">คำถามจะแสดงที่นี่...</div>
+            <div class="answers-grid" id="answers-container"></div>
+        </div>
+    </div>
+
+    <!-- GENERIC INFO MODAL -->
+    <div id="modal-info" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title" style="color: var(--accent-gold); margin-bottom: 16px;">TITLE</h2>
+            <div id="modal-body" style="font-size: 14px; line-height: 1.6; margin-bottom: 24px; text-align: left;">BODY</div>
+            <button class="btn btn-primary" onclick="closeModal('modal-info')">ตกลง</button>
+        </div>
+    </div>
+
+    <!-- RESULT MODAL (VICTORY / DEFEAT) -->
+    <div id="modal-result" class="modal">
+        <div class="modal-content" id="result-card">
+            <h1 id="result-title" style="font-size: 36px; margin-bottom: 12px;">🏆 VICTORY!</h1>
+            <div id="result-stats" style="margin-bottom: 24px; font-size: 16px; line-height: 1.8;"></div>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button class="btn btn-primary" id="result-btn-next" onclick="closeModal('modal-result'); showScreen('boss-room');">🏰 BOSS ROOM</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ==========================================================================
+   GAME DATA STRUCTURES & DATABASE
+   ========================================================================== */
+
+const BOSS_DATABASE = [
+    { id: 1, name: "PHISHING GOBLIN", icon: "👾", level: 1, hp: 500, atk: 40, expReward: 500, coinReward: 100, desc: "หลอกลวงด้วยลิงก์ปลอมและข้อความหลอกเอาข้อมูล" },
+    { id: 2, name: "CYBER BULLY", icon: "🧟", level: 5, hp: 1000, atk: 75, expReward: 1000, coinReward: 250, desc: "สร้างความเกลียดชังและกลั่นแกล้งบนโลกออนไลน์" },
+    { id: 3, name: "DATA THIEF", icon: "🕵️", level: 10, hp: 2000, atk: 120, expReward: 2000, coinReward: 500, desc: "แอบขโมยข้อมูลส่วนบุคคลและ รหัสผ่านที่ไม่ปลอดภัย" },
+    { id: 4, name: "FAKE NEWS MACHINE", icon: "🤖", level: 15, hp: 3500, atk: 180, expReward: 3500, coinReward: 800, desc: "แพร่กระจายข่าวปลอมและสร้างความสับสนในสังคม" },
+    { id: 5, name: "PRIVACY DEMON", icon: "👹", level: 20, hp: 5000, atk: 250, expReward: 5000, coinReward: 1200, desc: "คุกคามความเป็นส่วนตัวและแอบส่องข้อมูลของผู้อื่น" },
+    { id: 6, name: "DIGITAL DRAGON", icon: "🐉", level: 30, hp: 8000, atk: 360, expReward: 8000, coinReward: 2000, desc: "ละเมิดลิขสิทธิ์และทำลายความปลอดภัยของเครือข่าย" },
+    { id: 7, name: "DIGITAL DARK LORD", icon: "👑", level: 50, hp: 15000, atk: 550, expReward: 15000, coinReward: 5000, desc: "จอมมารภัยคุกคามไซเบอร์ขั้นสูงสุด" }
+];
+
+const QUESTION_DATABASE = [
+    // DIGITAL SAFETY
+    {
+        cat: "🔐 DIGITAL SAFETY",
+        q: "คุณได้รับ SMS แจ้งว่าได้รับเงินรางวัล 10,000 บาท พร้อมลิงก์ให้กรอกรหัสผ่านธนาคาร คุณควรทำอย่างไร?",
+        options: ["กดลิงก์ทันทีเพื่อรับเงิน", "ส่งต่อให้เพื่อนร่วมรับโชค", "ลบ SMS ทิ้งและไม่กดลิงก์ใดๆ", "โพสต์ถามรหัสผ่านจากเพื่อน"],
+        answer: 2,
+        explain: "ข้อความหลอกลวง (Phishing) มักใช้รางวัลมาล่อซื้อ เพื่อขโมยรหัสผ่านและข้อมูลส่วนตัว"
+    },
+    {
+        cat: "🔐 DIGITAL SAFETY",
+        q: "การตั้งรหัสผ่าน (Password) ที่ปลอดภัยที่สุดควรมีลักษณะอย่างไร?",
+        options: ["ใช้ วัน/เดือน/ปีเกิด", "ใช้ 12345678", "ผสมอักขระพิเศษ ตัวเลข และอักษรใหญ่-เล็ก", "ใช้ชื่อตัวเอง"],
+        answer: 2,
+        explain: "รหัสผ่านที่ดีควรมีความยาว 12 ตัวอักษรขึ้นไป และผสมอักขระหลากหลายประเภท"
+    },
+    {
+        cat: "🔐 DIGITAL SAFETY",
+        q: "เมื่อใช้งานคอมพิวเตอร์สาธารณะ หลังใช้งานเสร็จควรทำสิ่งใดเป็นอันดับแรก?",
+        options: ["ปิดหน้าจอทิ้งไว้", "กด Log Out ออกจากระบบทุกบัญชี", "เซฟรหัสผ่านไว้ในเบราว์เซอร์", "เปิดทิ้งไว้ให้คนอื่นใช้ต่อ"],
+        answer: 1,
+        explain: "การ Log Out ช่วยป้องกันไม่ให้ผู้อื่นสวมรอยเข้าถึงบัญชีส่วนตัวของคุณได้"
+    },
+    // DIGITAL KNOWLEDGE
+    {
+        cat: "📱 DIGITAL KNOWLEDGE",
+        q: "หากพบข่าวปาดหัวน่าตกใจบน Social Media สิ่งแรกที่ควรทำก่อนกด Share คืออะไร?",
+        options: ["แชร์ทันทีให้เพื่อนรู้ก่อนใคร", "ตรวจสอบความน่าเชื่อถือจากแหล่งข่าวต้นทาง", "ด่าทอในช่องคอมเมนต์", "แคปหน้าจอไปขายข่าว"],
+        answer: 1,
+        explain: "การเช็กก่อนแชร์ ช่วยยับยั้งการแพร่กระจายของข่าวปลอม (Fake News)"
+    },
+    {
+        cat: "📱 DIGITAL KNOWLEDGE",
+        q: "คำว่า 'Digital Footprint' หมายถึงสิ่งใด?",
+        options: ["ร่องรอยประวัติกิจกรรมที่เราทำไว้บนโลกออนไลน์", "ขนาดรองเท้าที่สั่งซื้อออนไลน์", "ไวรัสคอมพิวเตอร์ชนิดหนึ่ง", "สแกนนิ้วมือบนสมาร์ตโฟน"],
+        answer: 0,
+        explain: "ทุกการโพสต์ ค้นหา หรือคอมเมนต์ จะสร้างร่องรอยดิจิทัลที่คงอยู่ถาวรบนอินเทอร์เน็ต"
+    },
+    {
+        cat: "📱 DIGITAL KNOWLEDGE",
+        q: "การนำภาพของผู้อื่นที่มีลิขสิทธิ์มาใช้ในงานของตนเองโดยไม่ได้รับอนุญาต ถือเป็นการกระทำใด?",
+        options: ["การแบ่งปันความรู้", "การละเมิดลิขสิทธิ์ (Copyright Infringement)", "มารยาทที่ดี", "การช่วยโปรโมตผลงาน"],
+        answer: 1,
+        explain: "ผลงานสร้างสรรค์มีลิขสิทธิ์คุ้มครอง ต้องขออนุญาตหรือให้เครดิตอย่างถูกต้องเสมอ"
+    },
+    // DIGITAL RESPECT
+    {
+        cat: "❤️ DIGITAL RESPECT",
+        q: "เมื่อเห็นเพื่อนโดนล้อเลียนปมด้อยอย่างรุนแรงในกลุ่มแชตออนไลน์ คุณควรทำอย่างไร?",
+        options: ["ร่วมผสมโรงล้อเลียนด้วย", "แคปภาพไปขำต่อกับคนอื่น", "ไม่ร่วมวงล้อเลียน และแจ้งเตือนผู้ดูแลกลุ่ม", "นั่งดูเฉยๆ ไม่สนใจ"],
+        answer: 2,
+        explain: "การหยุดยั้ง Cyberbullying เริ่มจากการไม่เป็นผู้สนับสนุน และช่วยปกป้องเหยื่อ"
+    },
+    {
+        cat: "❤️ DIGITAL RESPECT",
+        q: "ก่อนแอบถ่ายรูปเพื่อนแล้วนำไปโพสต์ลงโซเชียล สิ่งที่ต้องทำคืออะไร?",
+        options: ["ขออนุญาตเพื่อนก่อนโพสต์เสมอ", "แอบโพสต์แล้วค่อยบอก", "ติดแท็กเพื่อนทุกคน", "ใส่ฟิลเตอร์กวนๆ"],
+        answer: 0,
+        explain: "การเคารพสิทธิและความเป็นส่วนตัว (Privacy) ของผู้อื่นเป็นพื้นฐานสำคัญของพลเมืองดิจิทัล"
+    }
+];
+
+/* ==========================================================================
+   GAME STATE & PLAYER SAVING
+   ========================================================================== */
+
+let player = {
+    level: 1,
+    exp: 0,
+    maxExp: 1000,
+    hp: 500,
+    maxHp: 500,
+    atk: 100,
+    def: 50,
+    score: 0,
+    coin: 0,
+    unlockedBossId: 1,
+    inventory: ["🎁 Digital Shield (เกราะป้องกันไซเบอร์)"],
+    achievements: []
+};
+
+let currentBoss = null;
+let currentBossHp = 0;
+let currentPhase = 1;
+let currentCombo = 0;
+let currentQuestion = null;
+
+// Initialize & Load Save Data
+function loadGameData() {
+    const saved = localStorage.getItem("digital_citizen_rpg_save");
+    if (saved) {
+        try {
+            player = JSON.parse(saved);
+        } catch(e) { console.error(e); }
+    }
+    updateHeaderUI();
+}
+
+function saveGameData() {
+    localStorage.setItem("digital_citizen_rpg_save", JSON.stringify(player));
+    updateHeaderUI();
+}
+
+function resetSaveData() {
+    if (confirm("คุณต้องการรีเซ็ตข้อมูลเกมทั้งหมดใช่หรือไม่?")) {
+        localStorage.removeItem("digital_citizen_rpg_save");
+        location.reload();
+    }
+}
+
+function updateHeaderUI() {
+    document.getElementById("header-lvl").innerText = `Lv. ${player.level}`;
+    document.getElementById("header-coin").innerText = `🪙 ${player.coin}`;
+    document.getElementById("header-score").innerText = `🏆 ${player.score}`;
+}
+
+/* ==========================================================================
+   SCREEN & NAVIGATION
+   ========================================================================== */
+
+function showScreen(screenId) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    const target = document.getElementById(`screen-${screenId}`);
+    if (target) target.classList.add("active");
+
+    if (screenId === "boss-room") renderBossRoom();
+}
+
+/* ==========================================================================
+   BOSS ROOM SYSTEM
+   ========================================================================== */
+
+function renderBossRoom() {
+    const container = document.getElementById("boss-list-container");
+    container.innerHTML = "";
+
+    BOSS_DATABASE.forEach(boss => {
+        const isLocked = boss.id > player.unlockedBossId;
+        const card = document.createElement("div");
+        card.className = `boss-card ${isLocked ? "locked" : ""}`;
+        
+        card.innerHTML = `
+            <div style="font-size: 12px; font-weight: bold; color: var(--accent-gold);">BOSS 0${boss.id}</div>
+            <div class="boss-avatar">${boss.icon}</div>
+            <h3 style="margin-bottom: 4px;">${boss.name}</h3>
+            <div style="font-size: 12px; color: #8a99ad; margin-bottom: 12px;">Level ${boss.level} | HP ${boss.hp}</div>
+            <div style="font-size: 12px; text-align: center; margin-bottom: 16px;">${boss.desc}</div>
+            <div style="font-size: 11px; color: var(--accent-green); margin-bottom: 12px;">รางวัล: +${boss.expReward} EXP | +${boss.coinReward} Coin</div>
+            <button class="btn ${isLocked ? "btn-disabled" : "btn-danger"}" 
+                style="width: 100%;" 
+                ${isLocked ? "disabled" : ""} 
+                onclick="startBossBattle(${boss.id})">
+                ${isLocked ? "🔒 LOCKED" : "⚔️ FIGHT"}
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/* ==========================================================================
+   BATTLE SYSTEM & LOGIC
+   ========================================================================== */
+
+function startBossBattle(bossId) {
+    currentBoss = BOSS_DATABASE.find(b => b.id === bossId);
+    currentBossHp = currentBoss.hp;
+    currentPhase = 1;
+    currentCombo = 0;
+    player.hp = player.maxHp;
+
+    // Render Combatants
+    document.getElementById("boss-avatar").innerText = currentBoss.icon;
+    document.getElementById("boss-name").innerText = currentBoss.name;
+    document.getElementById("boss-lvl-display").innerText = `Lv. ${currentBoss.level}`;
+    document.getElementById("player-lvl-display").innerText = `Lv. ${player.level}`;
+
+    updateBattleBars();
+    showScreen("battle");
+    nextQuestion();
+}
+
+function updateBattleBars() {
+    // Player Bars
+    const pHealthPct = Math.max(0, (player.hp / player.maxHp) * 100);
+    document.getElementById("player-hp-bar").style.width = `${pHealthPct}%`;
+    document.getElementById("player-hp-text").innerText = `${Math.ceil(player.hp)}/${player.maxHp} HP`;
+
+    // Boss Bars & Phase
+    const bHealthPct = Math.max(0, (currentBossHp / currentBoss.hp) * 100);
+    document.getElementById("boss-hp-bar").style.width = `${bHealthPct}%`;
+    document.getElementById("boss-hp-text").innerText = `${Math.ceil(currentBossHp)}/${currentBoss.hp} HP`;
+
+    // Phase Calculation
+    if (bHealthPct > 70) currentPhase = 1;
+    else if (bHealthPct > 40) currentPhase = 2;
+    else currentPhase = 3;
+
+    const phaseText = currentPhase === 1 ? "PHASE 1 (Normal)" : currentPhase === 2 ? "PHASE 2 (🔥 RAGE MODE)" : "PHASE 3 (⚡ FINAL RAGE)";
+    document.getElementById("battle-phase-indicator").innerText = phaseText;
+
+    // Combo UI
+    const comboBadge = document.getElementById("combo-display");
+    if (currentCombo > 0) {
+        comboBadge.style.display = "block";
+        comboBadge.innerText = `x${currentCombo} COMBO`;
+    } else {
+        comboBadge.style.display = "none";
+    }
+}
+
+function nextQuestion() {
+    // Pick Random Question
+    const randIndex = Math.floor(Math.random() * QUESTION_DATABASE.length);
+    currentQuestion = QUESTION_DATABASE[randIndex];
+
+    document.getElementById("quiz-category").innerText = currentQuestion.cat;
+    document.getElementById("quiz-question").innerText = currentQuestion.q;
+
+    const answersContainer = document.getElementById("answers-container");
+    answersContainer.innerHTML = "";
+
+    currentQuestion.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.innerText = `${String.fromCharCode(65 + idx)}. ${opt}`;
+        btn.onclick = () => handleAnswer(idx);
+        answersContainer.appendChild(btn);
+    });
+}
+
+function handleAnswer(selectedIndex) {
+    if (selectedIndex === currentQuestion.answer) {
+        // --- CORRECT ATTACK ---
+        currentCombo++;
+        let comboMult = 1.0;
+        if (currentCombo >= 10) comboMult = 2.0;
+        else if (currentCombo >= 5) comboMult = 1.5;
+        else if (currentCombo >= 3) comboMult = 1.2;
+        else if (currentCombo >= 2) comboMult = 1.1;
+
+        let damage = Math.round(player.atk * comboMult);
+        if (currentCombo >= 10) {
+            spawnDamagePop("⚡ DIGITAL STRIKE! -" + damage, "boss-avatar");
+        } else {
+            spawnDamagePop(`💥 -${damage} HP`, "boss-avatar");
         }
 
-        function answerQuiz(choice, scene, btnA, btnB, btnAText, btnBText) {
-            if (choice === currentQData.correct) {
-                player.exp += 30;
-                alert("✅ ตอบถูก! ได้รับ +30 EXP");
-                if (player.exp >= player.maxExp) {
-                    player.level++;
-                    player.exp -= player.maxExp;
-                    player.maxExp += 30;
-                    player.maxHp += 40;
-                    player.hp = player.maxHp;
-                    player.atk += 15;
-                    alert(`🎉 เลเวลอัปเป็น Lv.${player.level}! (เพิ่ม Max HP และ พลังโจมตี)`);
-                }
-            } else {
-                alert("❌ ตอบผิด! ไม่ได้รับ EXP");
-            }
+        currentBossHp -= damage;
+        player.score += 100 * currentCombo;
+        addExp(50);
 
-            let ui = scene.quizUI;
-            ui.dialogueBox.setVisible(false);
-            ui.dialogueText.setVisible(false);
-            ui.btnA.setVisible(false);
-            ui.btnB.setVisible(false);
-            ui.btnAText.setVisible(false);
-            ui.btnBText.setVisible(false);
-            isTalking = false;
-            updateUI();
+        if (currentBossHp <= 0) {
+            currentBossHp = 0;
+            updateBattleBars();
+            setTimeout(handleVictory, 600);
+            return;
         }
+    } else {
+        // --- WRONG / BOSS ATTACK ---
+        currentCombo = 0;
+        let bossAtk = currentBoss.atk * (1 + (currentPhase - 1) * 0.3);
+        let damageTaken = Math.max(10, Math.round(bossAtk - player.def * 0.3));
 
-        function switchMode(scene, mode) {
-            currentMode = mode;
-            let isFarm = mode === 'FARM';
+        spawnDamagePop(`💥 -${damageTaken} HP`, "player-avatar");
+        player.hp -= damageTaken;
 
-            hero.setVisible(isFarm);
-            ground.setVisible(isFarm);
-            bossBtn.setVisible(isFarm);
+        openInfoModal("❌ WRONG!", `ตอบไม่ถูกต้อง!\n\n💡 คำอธิบาย: ${currentQuestion.explain}`);
 
-            bossContainer.setVisible(!isFarm);
-            bossHpText.setVisible(!isFarm);
-            bossAtkBtn.setVisible(!isFarm);
-            scene.bossUI.bossAtkText.setVisible(!isFarm);
-            retreatBtn.setVisible(!isFarm);
-            scene.bossUI.retreatText.setVisible(!isFarm);
-
-            if (!isFarm) {
-                clearAllObjects();
-                scene.cameras.main.setBackgroundColor('#4a154b');
-            } else {
-                scene.cameras.main.setBackgroundColor('#2c3e50');
-            }
-            updateUI();
+        if (player.hp <= 0) {
+            player.hp = 0;
+            updateBattleBars();
+            setTimeout(handleDefeat, 600);
+            return;
         }
+    }
 
-        function clearAllObjects() {
-            obstacles.clear(true, true);
-            quizBlocks.clear(true, true);
-        }
+    updateBattleBars();
+    nextQuestion();
+}
 
-        function attackBoss(scene) {
-            boss.hp -= player.atk;
-            if (boss.hp > 0) player.hp -= boss.atk;
+function spawnDamagePop(text, targetId) {
+    const targetEl = document.getElementById(targetId);
+    const rect = targetEl.getBoundingClientRect();
+    
+    const pop = document.createElement("div");
+    pop.className = "damage-pop";
+    pop.innerText = text;
+    pop.style.left = `${rect.left + rect.width / 2 - 40}px`;
+    pop.style.top = `${rect.top}px`;
 
-            if (boss.hp <= 0) {
-                alert(`🏆 ชนะบอส Lv.${boss.level}! บอสได้รับการอัปเกรดเป็น Lv.${boss.level + 1}`);
-                boss.level++;
-                boss.maxHp += 100;
-                boss.hp = boss.maxHp;
-                boss.atk += 10;
-                switchMode(scene, 'FARM');
-            } else if (player.hp <= 0) {
-                alert("💀 สู้บอสไม่ไหว HP หมด! หนีกลับไปเก็บเลเวลเพิ่มพลังก่อนนะ");
-                player.hp = player.maxHp;
-                switchMode(scene, 'FARM');
-            }
-            updateUI();
-        }
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 800);
+}
 
-        function updateUI() {
-            uiText.setText(`Player: Lv.${player.level} | EXP: ${player.exp}/${player.maxExp} | HP: ${player.hp}/${player.maxHp} | ATK: ${player.atk}`);
-            bossHpText.setText(`👹 BOSS Lv.${boss.level}\nHP: ${boss.hp}/${boss.maxHp} | ATK: ${boss.atk}`);
-        }
+function surrenderBattle() {
+    if (confirm("คุณต้องการยอมแพ้และออกจากห้องต่อสู้หรือไม่?")) {
+        showScreen("boss-room");
+    }
+}
 
-        function update() {
-            if (currentMode !== 'FARM' || isTalking) return;
+/* ==========================================================================
+   LEVELING & REWARDS
+   ========================================================================== */
 
-            if (cursors.up.isDown && hero.body.touching.down) {
-                hero.setVelocityY(-550);
-            }
-        }
-    </script>
+function addExp(amount) {
+    player.exp += amount;
+    if (player.exp >= player.maxExp) {
+        player.level++;
+        player.exp -= player.maxExp;
+        player.maxExp = Math.round(player.maxExp * 1.5);
+        player.maxHp += 100;
+        player.atk += 25;
+        player.def += 15;
+        player.hp = player.maxHp;
+        
+        spawnDamagePop("✨ LEVEL UP!", "player-avatar");
+    }
+    saveGameData();
+}
+
+function handleVictory() {
+    player.score += 1000;
+    player.coin += currentBoss.coinReward;
+    addExp(currentBoss.expReward);
+
+    // Unlock Next Boss
+    if (currentBoss.id === player.unlockedBossId && player.unlockedBossId < BOSS_DATABASE.length) {
+        player.unlockedBossId++;
+    }
+
+    saveGameData();
+
+    const titleEl = document.getElementById("result-title");
+    titleEl.innerText = "🏆 VICTORY!";
+    titleEl.style.color = "var(--accent-gold)";
+
+    document.getElementById("result-stats").innerHTML = `
+        คุณสามารถกำจัด <b>${currentBoss.name}</b> ได้สำเร็จ!<br><br>
+        🎁 <b>รางวัลที่ได้รับ:</b><br>
+        +${currentBoss.expReward} EXP<br>
+        +${currentBoss.coinReward} Coin<br>
+        ปลดล็อก Boss ถัดไปแล้ว!
+    `;
+
+    openModal("modal-result");
+}
+
+function handleDefeat() {
+    const titleEl = document.getElementById("result-title");
+    titleEl.innerText = "💀 DEFEATED";
+    titleEl.style.color = "var(--accent-red)";
+
+    document.getElementById("result-stats").innerHTML = `
+        คุณพ่ายแพ้ให้กับ <b>${currentBoss.name}</b><br>
+        พยายามศึกษาความรู้เรื่องพลเมืองดิจิทัลแล้วลองใหม่อีกครั้ง!
+    `;
+
+    openModal("modal-result");
+}
+
+/* ==========================================================================
+   MODALS & HELPERS
+   ========================================================================== */
+
+function openModal(id) {
+    document.getElementById(id).style.display = "flex";
+}
+
+function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+}
+
+function openInfoModal(title, bodyText) {
+    document.getElementById("modal-title").innerText = title;
+    document.getElementById("modal-body").innerText = bodyText;
+    openModal("modal-info");
+}
+
+function getCharacterSummary() {
+    return `🧙 PLAYER STATS\n\nLevel: ${player.level}\nHP: ${player.hp}/${player.maxHp}\nATK: ${player.atk}\nDEF: ${player.def}\nEXP: ${player.exp}/${player.maxExp}`;
+}
+
+function getInventorySummary() {
+    return player.inventory.length > 0 ? player.inventory.join("\n") : "ไม่มีไอเทมในกระเป๋า";
+}
+
+function getAchievementSummary() {
+    let unlockedCount = player.unlockedBossId - 1;
+    return `🏆 ACHIEVEMENTS\n\n- ปลดล็อก Boss: ${unlockedCount}/${BOSS_DATABASE.length}\n- คะแนนรวม: ${player.score}`;
+}
+
+// START GAME ON LOAD
+window.onload = () => {
+    loadGameData();
+};
+</script>
 </body>
 </html>
