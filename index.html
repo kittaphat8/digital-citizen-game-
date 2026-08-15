@@ -1,65 +1,271 @@
-function create() {
-    // 1. สร้างพื้นดินไว้ล่างสุด
-    ground = this.add.rectangle(400, 580, 800, 40, 0x27ae60);
-    this.physics.add.existing(ground, true);
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Digital RPG: Mario Style Jump & Boss</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <script>
+        let player = { level: 1, exp: 0, maxExp: 50, hp: 100, maxHp: 100, atk: 25 };
+        let boss = { level: 1, hp: 150, maxHp: 150, atk: 15 };
 
-    // 2. ปล่อยตัวละครจากด้านบน (Y = 100) ให้ร่วงลงมาตามแรงโน้มถ่วง
-    hero = this.physics.add.image(200, 100, 'hero');
-    hero.setCollideWorldBounds(true);
-    hero.setBounce(0.1);
+        let questionsBank = [
+            { q: "ถ้ามีคนทักมาขอรหัสผ่านเกม ควรทำอย่างไร?", a: ["ให้ทันที", "ปฏิเสธและบล็อก"], correct: 1 },
+            { q: "การด่าทอผู้อื่นออนไลน์เรียกว่าอะไร?", a: ["Cyberbullying", "Digital Citizen"], correct: 0 },
+            { q: "ก่อนแชร์ข่าวสาร ควรทำอย่างไร?", a: ["แชร์ทันที", "ตรวจสอบความจริง"], correct: 1 },
+            { q: "พบรูปที่ไม่เหมาะสมของเพื่อนในเน็ต ควรทำอย่างไร?", a: ["แชร์ต่อให้คนอื่นดู", "แจ้งเตือนผู้ปกครอง/ครู"], correct: 1 }
+        ];
 
-    // 3. กำหนดให้ตัวละครเหยียบพื้นได้
-    this.physics.add.collider(hero, ground);
+        let currentMode = 'FARM';
+        let hero, ground, obstacles, quizBlocks, cursors;
+        let dialogueBox, dialogueText, isTalking = false;
+        let uiText, bossBtn, retreatBtn;
+        let currentQData = null;
+        let bossHpText, bossAtkBtn;
+        let spawnTimer;
 
-    obstacles = this.physics.add.group();
-    quizBlocks = this.physics.add.group();
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '#2c3e50',
+            physics: { 
+                default: 'arcade', 
+                arcade: { 
+                    gravity: { y: 1000 }, // ระบบแรงโน้มถ่วงสำหรับตัวละคร
+                    debug: false 
+                } 
+            },
+            scene: { preload: preload, create: create, update: update }
+        };
 
-    this.physics.add.overlap(hero, obstacles, hitObstacle, null, this);
-    this.physics.add.overlap(hero, quizBlocks, hitQuizBlock, null, this);
+        const game = new Phaser.Game(config);
 
-    spawnTimer = this.time.addEvent({
-        delay: 2200,
-        callback: spawnObjects,
-        callbackScope: this,
-        loop: true
-    });
-
-    uiText = this.add.text(20, 20, '', { fontSize: '18px', fill: '#fff' });
-
-    bossBtn = this.add.rectangle(700, 40, 140, 40, 0xe74c3c).setInteractive();
-    this.add.text(700, 40, 'ไปสู้บอส ➔', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
-    bossBtn.on('pointerdown', () => switchMode(this, 'BOSS'));
-
-    dialogueBox = this.add.rectangle(400, 300, 740, 140, 0x000000, 0.9).setStrokeStyle(2, 0xffffff).setVisible(false);
-    dialogueText = this.add.text(50, 250, '', { fontSize: '18px', fill: '#fff', wordWrap: { width: 700 } }).setVisible(false);
-
-    let btnA = this.add.rectangle(250, 350, 250, 40, 0x2ecc71).setInteractive().setVisible(false);
-    let btnAText = this.add.text(250, 350, '', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-    let btnB = this.add.rectangle(550, 350, 250, 40, 0xe67e22).setInteractive().setVisible(false);
-    let btnBText = this.add.text(550, 350, '', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-
-    btnA.on('pointerdown', () => answerQuiz(0, this, btnA, btnB, btnAText, btnBText));
-    btnB.on('pointerdown', () => answerQuiz(1, this, btnA, btnB, btnAText, btnBText));
-
-    this.quizUI = { dialogueBox, dialogueText, btnA, btnB, btnAText, btnBText };
-
-    bossHpText = this.add.text(400, 150, '', { fontSize: '22px', fill: '#ff7675' }).setOrigin(0.5).setVisible(false);
-    bossAtkBtn = this.add.rectangle(400, 350, 180, 60, 0xc0392b).setInteractive().setVisible(false);
-    let bossAtkText = this.add.text(400, 350, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-
-    retreatBtn = this.add.rectangle(400, 450, 220, 40, 0x34495e).setInteractive().setVisible(false);
-    let retreatText = this.add.text(400, 450, '🏃 หนีกลับไปเก็บ Lv.', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
-
-    bossAtkBtn.on('pointerdown', () => attackBoss(this));
-    retreatBtn.on('pointerdown', () => switchMode(this, 'FARM'));
-
-    cursors = this.input.keyboard.createCursorKeys();
-
-    this.input.on('pointerdown', (pointer) => {
-        if (currentMode === 'FARM' && !isTalking && hero.body.touching.down && pointer.y > 100) {
-            hero.setVelocityY(-550);
+        function preload() {
+            this.load.image('hero', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
         }
-    });
 
-    updateUI();
-}
+        function create() {
+            // 1. พื้นดินสำหรับยึดตัวละคร
+            ground = this.add.rectangle(400, 580, 800, 40, 0x27ae60);
+            this.physics.add.existing(ground, true);
+
+            // 2. ตัวละครหลัก (ตกลงมาจากบนลงพื้น)
+            hero = this.physics.add.image(200, 100, 'hero');
+            hero.setCollideWorldBounds(true);
+            hero.setBounce(0.1);
+
+            // ชนพื้นดิน
+            this.physics.add.collider(hero, ground);
+
+            obstacles = this.physics.add.group();
+            quizBlocks = this.physics.add.group();
+
+            // ตรวจจับการชน
+            this.physics.add.overlap(hero, obstacles, hitObstacle, null, this);
+            this.physics.add.overlap(hero, quizBlocks, hitQuizBlock, null, this);
+
+            // สุ่มสร้างวัตถุปล่อยออกมาทางขวา
+            spawnTimer = this.time.addEvent({
+                delay: 2200,
+                callback: spawnObjects,
+                callbackScope: this,
+                loop: true
+            });
+
+            // UI สถานะตัวละคร
+            uiText = this.add.text(20, 20, '', { fontSize: '18px', fill: '#fff' });
+
+            // ปุ่มไปสู้บอส
+            bossBtn = this.add.rectangle(700, 40, 140, 40, 0xe74c3c).setInteractive();
+            this.add.text(700, 40, 'ไปสู้บอส ➔', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
+            bossBtn.on('pointerdown', () => switchMode(this, 'BOSS'));
+
+            // UI กล่องคำถาม
+            dialogueBox = this.add.rectangle(400, 300, 740, 140, 0x000000, 0.9).setStrokeStyle(2, 0xffffff).setVisible(false);
+            dialogueText = this.add.text(50, 250, '', { fontSize: '18px', fill: '#fff', wordWrap: { width: 700 } }).setVisible(false);
+
+            let btnA = this.add.rectangle(250, 350, 250, 40, 0x2ecc71).setInteractive().setVisible(false);
+            let btnAText = this.add.text(250, 350, '', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+            let btnB = this.add.rectangle(550, 350, 250, 40, 0xe67e22).setInteractive().setVisible(false);
+            let btnBText = this.add.text(550, 350, '', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+
+            btnA.on('pointerdown', () => answerQuiz(0, this, btnA, btnB, btnAText, btnBText));
+            btnB.on('pointerdown', () => answerQuiz(1, this, btnA, btnB, btnAText, btnBText));
+
+            this.quizUI = { dialogueBox, dialogueText, btnA, btnB, btnAText, btnBText };
+
+            // UI โหมดบอส
+            bossHpText = this.add.text(400, 150, '', { fontSize: '22px', fill: '#ff7675' }).setOrigin(0.5).setVisible(false);
+            bossAtkBtn = this.add.rectangle(400, 350, 180, 60, 0xc0392b).setInteractive().setVisible(false);
+            let bossAtkText = this.add.text(400, 350, '⚔️ โจมตีบอส!', { fontSize: '20px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+
+            retreatBtn = this.add.rectangle(400, 450, 220, 40, 0x34495e).setInteractive().setVisible(false);
+            let retreatText = this.add.text(400, 450, '🏃 หนีกลับไปเก็บ Lv.', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5).setVisible(false);
+
+            bossAtkBtn.on('pointerdown', () => attackBoss(this));
+            retreatBtn.on('pointerdown', () => switchMode(this, 'FARM'));
+
+            cursors = this.input.keyboard.createCursorKeys();
+
+            // รองรับสัมผัสหน้าจอเพื่อกระโดด (สำหรับมือถือ/iPad)
+            this.input.on('pointerdown', (pointer) => {
+                if (currentMode === 'FARM' && !isTalking && hero.body.touching.down && pointer.y > 100) {
+                    hero.setVelocityY(-550);
+                }
+            });
+
+            updateUI();
+        }
+
+        // สุ่มสร้างวัตถุวิ่งตรงขนานพื้นมาหาตัวละคร
+        function spawnObjects() {
+            if (currentMode !== 'FARM' || isTalking) return;
+
+            let isQuiz = Phaser.Math.Between(0, 1) === 1;
+
+            if (isQuiz) {
+                // บล็อกคำถามสีเหลือง (ลอยระดับกลาง)
+                let qBlock = this.add.rectangle(850, 420, 40, 40, 0xf1c40f);
+                this.physics.add.existing(qBlock);
+                quizBlocks.add(qBlock);
+                qBlock.body.setAllowGravity(false); // ปิดแรงโน้มถ่วงไม่ให้ตกพื้น
+                qBlock.body.setVelocityX(-250);
+            } else {
+                // สิ่งกีดขวางสีแดง (ตั้งระดับพื้น)
+                let obs = this.add.rectangle(850, 530, 40, 60, 0xe74c3c);
+                this.physics.add.existing(obs);
+                obstacles.add(obs);
+                obs.body.setAllowGravity(false); // ปิดแรงโน้มถ่วงไม่ให้ตกพื้น
+                obs.body.setVelocityX(-250);
+            }
+        }
+
+        // ชนสิ่งกีดขวางแล้วเลือดลด
+        function hitObstacle(heroObj, obs) {
+            obs.destroy();
+            player.hp -= 20;
+
+            if (player.hp <= 0) {
+                player.hp = 0;
+                alert("💔 เลือดหมด! คุณหมดสติ ฟื้นฟูเลือดแล้วเริ่มใหม่");
+                player.hp = player.maxHp;
+                clearAllObjects();
+            }
+            updateUI();
+        }
+
+        // ชนบล็อกคำถาม
+        function hitQuizBlock(heroObj, qBlock) {
+            qBlock.destroy();
+            if (!isTalking) {
+                isTalking = true;
+                currentQData = questionsBank[Phaser.Math.Between(0, questionsBank.length - 1)];
+                
+                let ui = this.quizUI;
+                ui.dialogueText.setText(`[กระโดดชนบล็อกคำถาม!]\n${currentQData.q}`);
+                ui.btnAText.setText(`A: ${currentQData.a[0]}`);
+                ui.btnBText.setText(`B: ${currentQData.a[1]}`);
+
+                ui.dialogueBox.setVisible(true);
+                ui.dialogueText.setVisible(true);
+                ui.btnA.setVisible(true);
+                ui.btnB.setVisible(true);
+                ui.btnAText.setVisible(true);
+                ui.btnBText.setVisible(true);
+            }
+        }
+
+        function answerQuiz(choice, scene, btnA, btnB, btnAText, btnBText) {
+            if (choice === currentQData.correct) {
+                player.exp += 30;
+                alert("✅ ตอบถูก! ได้รับ +30 EXP");
+                if (player.exp >= player.maxExp) {
+                    player.level++;
+                    player.exp -= player.maxExp;
+                    player.maxExp += 30;
+                    player.maxHp += 40;
+                    player.hp = player.maxHp;
+                    player.atk += 15;
+                    alert(`🎉 เลเวลอัปเป็น Lv.${player.level}! (เพิ่ม Max HP และ พลังโจมตี)`);
+                }
+            } else {
+                alert("❌ ตอบผิด! ไม่ได้รับ EXP");
+            }
+
+            let ui = scene.quizUI;
+            ui.dialogueBox.setVisible(false);
+            ui.dialogueText.setVisible(false);
+            ui.btnA.setVisible(false);
+            ui.btnB.setVisible(false);
+            ui.btnAText.setVisible(false);
+            ui.btnBText.setVisible(false);
+            isTalking = false;
+            updateUI();
+        }
+
+        function switchMode(scene, mode) {
+            currentMode = mode;
+            let isFarm = mode === 'FARM';
+
+            hero.setVisible(isFarm);
+            ground.setVisible(isFarm);
+            bossBtn.setVisible(isFarm);
+
+            bossHpText.setVisible(!isFarm);
+            bossAtkBtn.setVisible(!isFarm);
+            retreatBtn.setVisible(!isFarm);
+
+            if (!isFarm) {
+                clearAllObjects();
+                scene.cameras.main.setBackgroundColor('#4a154b');
+            } else {
+                scene.cameras.main.setBackgroundColor('#2c3e50');
+            }
+            updateUI();
+        }
+
+        function clearAllObjects() {
+            obstacles.clear(true, true);
+            quizBlocks.clear(true, true);
+        }
+
+        function attackBoss(scene) {
+            boss.hp -= player.atk;
+            if (boss.hp > 0) player.hp -= boss.atk;
+
+            if (boss.hp <= 0) {
+                alert(`🏆 ชนะบอส Lv.${boss.level}! บอสได้รับการอัปเกรดเป็น Lv.${boss.level + 1}`);
+                boss.level++;
+                boss.maxHp += 100;
+                boss.hp = boss.maxHp;
+                boss.atk += 10;
+                switchMode(scene, 'FARM');
+            } else if (player.hp <= 0) {
+                alert("💀 สู้บอสไม่ไหว HP หมด! หนีกลับไปเก็บเลเวลเพิ่มพลังก่อนนะ");
+                player.hp = player.maxHp;
+                switchMode(scene, 'FARM');
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            uiText.setText(`Player: Lv.${player.level} | EXP: ${player.exp}/${player.maxExp} | HP: ${player.hp}/${player.maxHp} | ATK: ${player.atk}`);
+            bossHpText.setText(`👹 BOSS Lv.${boss.level}\nHP: ${boss.hp}/${boss.maxHp} | ATK: ${boss.atk}`);
+        }
+
+        function update() {
+            if (currentMode !== 'FARM' || isTalking) return;
+
+            // ควบคุมการกระโดดสไตล์มาริโอ้ด้วยปุ่ม Up
+            if (cursors.up.isDown && hero.body.touching.down) {
+                hero.setVelocityY(-550);
+            }
+        }
+    </script>
+</body>
+</html>
