@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENDOCRINE: MULTIPLAYER (100 SPACES)</title>
+    <title>ENDOCRINE: MULTIPLAYER</title>
     <!-- โหลด PeerJS สำหรับทำระบบออนไลน์ Peer-to-Peer -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -32,6 +32,7 @@
         .btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); transform: scale(1.05); }
         .btn:disabled { border-color: #555; color: #555; cursor: not-allowed; box-shadow: none; transform: none; }
         
+        .btn-small { padding: 5px 15px; font-size: 1rem; margin: 0 10px; }
         .btn-red { color: var(--neon-red); border-color: var(--neon-red); box-shadow: 0 0 10px rgba(255,23,68,0.2) inset; }
         .btn-red:hover { background: var(--neon-red); color: #000; box-shadow: 0 0 20px var(--neon-red); }
 
@@ -52,12 +53,11 @@
         .progress-bar { width: 100%; height: 8px; background: #111; border: 1px solid #333; border-radius: 4px; overflow: hidden; position: relative; }
         .progress-fill { height: 100%; transition: width 0.3s; }
         
-        /* Board (ปรับขนาดให้เล็กลงเพื่อให้จุ 100 ช่องได้ดีขึ้น) */
+        /* Board */
         .board-container { flex: 1; padding: 20px; position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 10px; overflow-y: auto;}
         .node { width: 65px; height: 65px; border-radius: 50%; border: 2px solid var(--neon-blue); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold; text-align: center; position: relative; background: rgba(0,229,255,0.1); flex-shrink: 0;}
         .node.boss-node { border-color: var(--neon-red); background: rgba(255,23,68,0.2); }
         
-        /* ตัวเดินเล็กลงนิดหน่อย */
         .player-token { width: 22px; height: 22px; border-radius: 50%; position: absolute; top: -5px; left: -5px; z-index: 5; border: 2px solid #000; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 0.7rem; transition: all 0.5s;}
         
         /* Modals */
@@ -70,8 +70,9 @@
 
         .controls-area { display: flex; justify-content: space-around; padding: 20px; background: rgba(0,0,0,0.8); border-top: 1px solid var(--neon-blue); align-items: center;}
         
-        /* เลขช่อง */
         .node-number { position: absolute; bottom: 2px; font-size: 0.5rem; opacity: 0.6; }
+
+        .settings-panel { margin: 15px; padding: 15px; background: rgba(0, 230, 118, 0.1); border: 1px solid var(--neon-green); border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -80,7 +81,6 @@
     <div id="main-menu" class="screen active">
         <h1 style="font-size: 3.5rem; color: var(--neon-blue); text-align: center;">ENDOCRINE<br><span style="color: #fff;">MULTIPLAYER</span></h1>
         <p style="margin: 10px 0; font-size: 1.2rem; letter-spacing: 2px;">"Control the Hormones. Restore the Balance."</p>
-        <p style="margin-bottom: 30px; color: var(--neon-green); font-weight: bold;">(100 SPACES EDITION)</p>
         <button class="btn" onclick="showScreen('lobby-host')">HOST GAME (สร้างห้อง)</button>
         <button class="btn" onclick="showScreen('lobby-join')">JOIN GAME (เข้าห้อง)</button>
     </div>
@@ -88,13 +88,24 @@
     <!-- Host Lobby -->
     <div id="lobby-host" class="screen">
         <h2 style="color: var(--neon-yellow);">HOSTING ROOM</h2>
-        <div style="margin: 20px; padding: 30px; background: rgba(0,229,255,0.1); border: 1px solid var(--neon-blue); text-align: center;">
+        <div style="margin: 20px; padding: 30px; background: rgba(0,229,255,0.1); border: 1px solid var(--neon-blue); text-align: center; width: 400px;">
             <p>ROOM CODE:</p>
             <h1 id="host-room-code" style="font-size: 4rem; letter-spacing: 10px; color: var(--neon-green);">----</h1>
             <p style="margin-top: 10px;" id="host-status">INITIALIZING SERVER...</p>
+            
+            <!-- ตั้งค่าจำนวนช่อง (เฉพาะ Host) -->
+            <div class="settings-panel">
+                <p style="margin-bottom: 10px; font-weight: bold; color: var(--neon-green);">BOARD SIZE (จำนวนช่อง)</p>
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <button class="btn btn-small" onclick="adjustBoardSize(-10)">-10</button>
+                    <span id="display-board-size" style="font-size: 2rem; width: 80px; font-family: 'Orbitron', sans-serif;">100</span>
+                    <button class="btn btn-small" onclick="adjustBoardSize(10)">+10</button>
+                </div>
+            </div>
         </div>
+        
         <div id="host-players-list" style="margin-bottom: 20px; font-family: 'Orbitron', sans-serif; color: var(--neon-blue);">PLAYERS CONNECTED: 0/18</div>
-        <button class="btn btn-red" id="btn-start-game" onclick="hostStartGame()" disabled>START MISSION (100 CHANNELS)</button>
+        <button class="btn btn-red" id="btn-start-game" onclick="hostStartGame()" disabled>START MISSION</button>
         <button class="btn" onclick="location.reload()">CANCEL</button>
     </div>
 
@@ -156,387 +167,42 @@
     </div>
 
 <script>
-    const BOARD_SPACES = 100;
-    
-    // สร้าง 100 ช่องอัตโนมัติ
-    const NODE_TYPES = ["START"];
-    const GLAND_NAMES = ["PANCREAS", "THYROID", "ADRENAL", "PITUITARY", "PINEAL"];
-    
-    for (let i = 1; i < 99; i++) {
-        if (i % 10 === 0) {
-            NODE_TYPES.push("BOSS"); // บอสทุกๆ 10 ช่อง
-        } else if (i % 6 === 0) {
-            NODE_TYPES.push("CRISIS"); // Crisis แทรกเข้ามาบ่อยๆ
-        } else if (i % 7 === 0) {
-            NODE_TYPES.push("RANDOM");
-        } else {
-            NODE_TYPES.push(GLAND_NAMES[i % GLAND_NAMES.length]);
-        }
-    }
-    NODE_TYPES.push("FINAL BOSS");
-    
     // 18 สีสำหรับผู้เล่น 18 คน
     const PLAYER_COLORS = [
-        "#ffea00", "#00e5ff", "#00e676", "#ff1744", 
-        "#ff9100", "#d500f9", "#76ff03", "#f50057", 
-        "#00b0ff", "#1de9b6", "#c6ff00", "#ff3d00",
-        "#651fff", "#00e5ff", "#ffea00", "#00e676",
-        "#ff1744", "#ffffff"
-    ];
-    
-    // ฐานข้อมูลคำถาม 30 ข้อ 
-    const QUESTIONS = [
-        { q: "ระดับน้ำตาลในเลือดสูงมากหลังมื้ออาหาร ฮอร์โมนใดควรหลั่ง?", c: ["อินซูลิน (Insulin)", "กลูคากอน (Glucagon)", "ADH", "ไทรอกซิน (Thyroxine)"], a: 0 },
-        { q: "คุณอดอาหาร 12 ชั่วโมง น้ำตาลตก ตับอ่อนจะหลั่งฮอร์โมนใด?", c: ["อินซูลิน (Insulin)", "กลูคากอน (Glucagon)", "คอร์ติซอล (Cortisol)", "อะดรีนาลิน (Adrenaline)"], a: 1 },
-        { q: "อินซูลินถูกสร้างขึ้นที่กลุ่มเซลล์ใดในตับอ่อน?", c: ["แอลฟาเซลล์ (Alpha cell)", "บีตาเซลล์ (Beta cell)", "เดลตาเซลล์ (Delta cell)", "อะซินาร์เซลล์ (Acinar cell)"], a: 1 },
-        { q: "โรคเบาหวาน (Diabetes Mellitus) เกิดจากความผิดปกติของการสร้างหรือการตอบสนองต่อฮอร์โมนใด?", c: ["กลูคากอน", "คอร์ติซอล", "อินซูลิน", "อะดรีนาลิน"], a: 2 },
-        { q: "แร่ธาตุใดสำคัญมากต่อการสร้างฮอร์โมนไทรอกซิน (Thyroxine)?", c: ["แคลเซียม", "เหล็ก", "ไอโอดีน", "โซเดียม"], a: 2 },
-        { q: "ผู้ป่วยที่มีอาการตาโปน ใจสั่น กินจุกแต่น้ำหนักลด มักมีภาวะฮอร์โมนใดสูงเกินไป?", c: ["อินซูลิน", "ไทรอกซิน", "พาราธอร์โมน (PTH)", "โกรทฮอร์โมน (GH)"], a: 1 },
-        { q: "ฮอร์โมนใดทำหน้าที่ 'ลด' ระดับแคลเซียมในเลือดเมื่อมีแคลเซียมสูงเกินไป?", c: ["พาราธอร์โมน (PTH)", "แคลซิโทนิน (Calcitonin)", "ไทรอกซิน", "คอร์ติซอล"], a: 1 },
-        { q: "ฮอร์โมนใดทำหน้าที่ 'เพิ่ม' ระดับแคลเซียมในเลือดโดยการสลายแคลเซียมจากกระดูก?", c: ["พาราธอร์โมน (PTH)", "แคลซิโทนิน (Calcitonin)", "กลูคากอน", "อินซูลิน"], a: 0 },
-        { q: "การขาดไอโอดีนในอาหารอย่างต่อเนื่อง จะทำให้เกิดโรคใด?", c: ["เบาหวาน", "คอพอก (Goiter)", "กระดูกพรุน", "คนแคระ"], a: 1 },
-        { q: "เจอสุนัขวิ่งไล่ หัวใจเต้นแรง ฮอร์โมนใดกำลังทำงานเป็นหลัก (Fight or Flight)?", c: ["คอร์ติซอล", "อะดรีนาลิน (Epinephrine)", "อินซูลิน", "PTH"], a: 1 },
-        { q: "ฮอร์โมนใดจัดการความเครียดระยะยาวและเพิ่มระดับน้ำตาลในเลือด?", c: ["อะดรีนาลิน", "คอร์ติซอล", "เมลาโทนิน", "ADH"], a: 1 },
-        { q: "ฮอร์โมนอัลโดสเตอโรน (Aldosterone) ทำหน้าที่ควบคุมสมดุลของสิ่งใดในร่างกาย?", c: ["น้ำตาลในเลือด", "แคลเซียม", "โซเดียมและน้ำ", "การเจริญเติบโต"], a: 2 },
-        { q: "กลุ่มอาการ Cushing's syndrome (หน้ากลมเป็นพระจันทร์ อ้วนลงพุง) เกิดจากฮอร์โมนใดมากเกินไป?", c: ["ไทรอกซิน", "คอร์ติซอล", "เทสโทสเตอโรน", "โกรทฮอร์โมน"], a: 1 },
-        { q: "ขาดน้ำอย่างรุนแรง ฮอร์โมนใดจะถูกหลั่งออกมาเพื่อดูดน้ำกลับที่ไตป้องกันการสูญเสียน้ำ?", c: ["อัลโดสเตอโรน", "ADH (Vasopressin)", "ออกซิโทซิน", "PTH"], a: 1 },
-        { q: "ฮอร์โมนใดกระตุ้นการหดตัวของมดลูกขณะคลอดบุตร?", c: ["โพรแลกติน (Prolactin)", "เอสโตรเจน", "ออกซิโทซิน (Oxytocin)", "โปรเจสเตอโรน"], a: 2 },
-        { q: "เด็กที่มีการหลั่ง โกรทฮอร์โมน (Growth Hormone) น้อยเกินไป จะมีลักษณะอย่างไร?", c: ["คนยักษ์ (Gigantism)", "คนแคระ (Dwarfism)", "คอพอก", "อ้วนลงพุง"], a: 1 },
-        { q: "ผู้ใหญ่ที่มีการหลั่ง โกรทฮอร์โมน (GH) มากผิดปกติ กระดูกใบหน้า มือ เท้า จะใหญ่ขึ้น เรียกว่าโรคอะไร?", c: ["Acromegaly", "Gigantism", "Dwarfism", "Cretinism"], a: 0 },
-        { q: "ฮอร์โมนใดทำหน้าที่กระตุ้นการสร้างน้ำนมในเพศหญิง?", c: ["ออกซิโทซิน (Oxytocin)", "โพรแลกติน (Prolactin)", "FSH", "LH"], a: 1 },
-        { q: "ฮอร์โมนคู่ใดที่ควบคุมรอบเดือนและการตกไข่ของผู้หญิงเป็นหลัก?", c: ["FSH และ LH", "ADH และ Oxytocin", "Insulin และ Glucagon", "TSH และ ACTH"], a: 0 },
-        { q: "ข้อใดคือฮอร์โมนที่หลั่งจาก ต่อมใต้สมองส่วนหลัง (Posterior Pituitary)?", c: ["GH และ TSH", "FSH และ LH", "ADH และ Oxytocin", "Prolactin และ ACTH"], a: 2 },
-        { q: "ต่อมใดเปรียบเสมือน 'ผู้บัญชาการ (Master Gland)' ของระบบต่อมไร้ท่อ?", c: ["ต่อมไทรอยด์", "ต่อมใต้สมอง (Pituitary)", "ต่อมหมวกไต", "ต่อมไพเนียล"], a: 1 },
-        { q: "ฮอร์โมนใดควบคุมนาฬิกาชีวิตและวงจรการนอนหลับ (Sleep-wake cycle)?", c: ["คอร์ติซอล", "เมลาโทนิน", "เซโรโทนิน", "ออกซิโทซิน"], a: 1 },
-        { q: "ฮอร์โมนเมลาโทนินจะถูกหลั่งออกมามากที่สุดในช่วงเวลาใด?", c: ["ตอนเช้าตรู่", "ตอนกลางวัน", "หลังรับประทานอาหาร", "เวลากลางคืน (ตอนมืด)"], a: 3 },
-        { q: "ฮอร์โมนใดแสดงลักษณะความเป็นชาย (เช่น เสียงแตกหน่อ, หนวดเครา)?", c: ["เอสโตรเจน (Estrogen)", "โพรเจสเตอโรน (Progesterone)", "เทสโทสเตอโรน (Testosterone)", "โพรแลกติน (Prolactin)"], a: 2 },
-        { q: "ฮอร์โมนใดทำหน้าที่ทำให้ผนังมดลูกหนาตัวเพื่อเตรียมพร้อมสำหรับการฝังตัวของตัวอ่อน?", c: ["โพรเจสเตอโรน", "เทสโทสเตอโรน", "ออกซิโทซิน", "ไทรอกซิน"], a: 0 },
-        { q: "ฮอร์โมนที่สร้างจากรังไข่ คือข้อใด?", c: ["FSH และ LH", "Estrogen และ Progesterone", "Testosterone และ Aldosterone", "Prolactin และ Oxytocin"], a: 1 },
-        { q: "ฮอร์โมนส่วนใหญ่เป็นสารเคมีประเภทใด?", c: ["คาร์โบไฮเดรต", "วิตามิน", "โปรตีน/เปปไทด์ และ สเตียรอยด์", "กรดนิวคลิอิก"], a: 2 },
-        { q: "ฮอร์โมนเดินทางไปสู่อวัยวะเป้าหมาย (Target organ) โดยผ่านระบบใด?", c: ["ระบบน้ำเหลือง", "ระบบประสาท", "ระบบหมุนเวียนเลือด", "ระบบย่อยอาหาร"], a: 2 },
-        { q: "ต่อมไร้ท่อ (Endocrine gland) ต่างจากต่อมมีท่อ (Exocrine gland) อย่างไร?", c: ["ต่อมไร้ท่อหลั่งสารเข้าสู่กระแสเลือดโดยตรง", "ต่อมไร้ท่อสร้างเอนไซม์", "ต่อมไร้ท่อมีขนาดใหญ่กว่า", "ต่อมไร้ท่อพบได้เฉพาะในมนุษย์"], a: 0 },
-        { q: "การทำงานที่ฮอร์โมนตัวหนึ่งหลั่งออกมา แล้วไปยับยั้งการสร้างฮอร์โมนอีกตัวหนึ่ง เรียกว่ากลไกอะไร?", c: ["Positive Feedback", "Negative Feedback", "Direct Action", "Reflex Action"], a: 1 }
-    ];
+        การทำเมนูที่สามารถกดเพิ่มหรือลดจำนวนข้อได้ **เฉพาะหัวหน้าห้อง (Room Host/Creator)** เป็นฟีเจอร์ที่ดีมากในการจัดการสิทธิ์ครับ 
 
-    /* ================= NETWORK STATE ================= */
-    let peer = null;
-    let connections = []; // สำหรับ Host
-    let hostConnection = null; // สำหรับ Client
-    
-    let isHost = false;
-    let myPlayerId = -1; 
-    let roomPrefix = "endo-"; 
+หลักการสำคัญคือการ **"ตรวจสอบสิทธิ์" (Authorization)** ว่าคนที่กำลังเปิดหน้านี้อยู่คือคนที่สร้างห้องหรือไม่ โดยแบ่งการทำงานออกเป็น 3 ส่วนหลักๆ ดังนี้ครับ
 
-    // ตัวแปร Master State
-    let gameState = {
-        status: 'LOBBY', 
-        players: [],
-        currentTurn: 0,
-        diceValue: '-',
-        activeEvent: null
-    };
+### 1. การตรวจสอบสิทธิ์ (Check Role)
+คุณต้องมีข้อมูลที่ระบุว่าผู้ใช้คนไหนเป็นหัวห้อง (เช่น เก็บ `hostId` ไว้ในข้อมูลห้อง) และนำมาเทียบกับไอดีของผู้ใช้ที่กำลังล็อกอินอยู่
 
-    /* ================= UI FUNCTIONS ================= */
-    function showScreen(id) {
-        document.querySelectorAll('.screen, #game-screen').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
+### 2. การแสดงผลหน้าจอ (Conditional Rendering)
+แสดงเมนูเพิ่ม/ลดจำนวนข้อเฉพาะเมื่อผู้ใช้คนนั้นเป็นหัวห้องเท่านั้น 
 
-    function generateBoard() {
-        const container = document.getElementById('board');
-        container.innerHTML = '';
-        NODE_TYPES.forEach((type, index) => {
-            let n = document.createElement('div');
-            n.className = 'node' + (type.includes('BOSS') ? ' boss-node' : '');
-            n.id = 'node-' + index;
-            
-            // ใส่ชื่อช่อง
-            let titleNode = document.createElement('span');
-            titleNode.innerText = type;
-            n.appendChild(titleNode);
+**ตัวอย่างถ้าเขียนด้วย React / Next.js:**
+```jsx
+function RoomSetting({ currentUser, roomData }) {
+  // เช็กว่าไอดีผู้ใช้ ตรงกับไอดีหัวห้องหรือไม่
+  const isHost = currentUser.id === roomData.hostId;
 
-            // ใส่เลขกำกับช่องไว้มุมล่าง
-            let numNode = document.createElement('div');
-            numNode.className = 'node-number';
-            numNode.innerText = index;
-            n.appendChild(numNode);
-
-            container.appendChild(n);
-        });
-    }
-
-    /* ================= HOST LOGIC ================= */
-    function initHost() {
-        isHost = true;
-        myPlayerId = 0;
-        let shortCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-        document.getElementById('host-room-code').innerText = shortCode;
-        
-        peer = new Peer(roomPrefix + shortCode);
-        
-        peer.on('open', (id) => {
-            document.getElementById('host-status').innerText = "WAITING FOR PLAYERS...";
-            gameState.players.push(createPlayerObj(0, "HOST (P1)"));
-            updateLobbyUI();
-        });
-
-        peer.on('connection', (conn) => {
-            if (gameState.players.length >= 18) {
-                conn.on('open', () => {
-                    conn.send({ type: 'ERROR', message: 'ROOM IS FULL (MAX 18 PLAYERS)' });
-                    setTimeout(() => conn.close(), 1000);
-                });
-                return;
-            }
-
-            connections.push(conn);
-            let newId = gameState.players.length;
-            gameState.players.push(createPlayerObj(newId, "PLAYER " + (newId+1)));
-            
-            conn.on('data', (data) => processClientAction(newId, data));
-            conn.on('close', () => console.log("Player left"));
-            
-            updateLobbyUI();
-            broadcastState(); 
-        });
-    }
-
-    function hostStartGame() {
-        gameState.status = 'PLAYING';
-        gameState.currentTurn = 0;
-        generateBoard();
-        broadcastState();
-    }
-
-    function processClientAction(pId, action) {
-        if(gameState.status !== 'PLAYING' && gameState.status !== 'EVENT') return;
-        
-        if (action.type === 'ROLL_DICE' && pId === gameState.currentTurn && gameState.status === 'PLAYING') {
-            let roll = Math.floor(Math.random() * 6) + 1;
-            gameState.diceValue = roll;
-            gameState.players[pId].pos = Math.min(gameState.players[pId].pos + roll, BOARD_SPACES - 1);
-            
-            let node = NODE_TYPES[gameState.players[pId].pos];
-            if (node === "CRISIS" || node === "PANCREAS" || node === "THYROID" || node === "ADRENAL" || node === "PINEAL" || node === "PITUITARY") {
-                let qIdx = Math.floor(Math.random() * QUESTIONS.length);
-                gameState.status = 'EVENT';
-                gameState.activeEvent = { type: 'QUIZ', pId: pId, qIdx: qIdx };
-            } else {
-                nextTurn();
-            }
-            broadcastState();
-        } 
-        else if (action.type === 'ANSWER_QUIZ' && gameState.status === 'EVENT') {
-            let correct = action.isCorrect;
-            let p = gameState.players[pId];
-            
-            if(correct) {
-                p.score += 20; p.balance = Math.min(100, p.balance + 10);
-                gameState.activeEvent = { type: 'RESULT', title: "CORRECT!", desc: "ตอบถูก!", effect: "+20 Score", isPositive: true };
-            } else {
-                p.hp -= 15; p.balance -= 10;
-                gameState.activeEvent = { type: 'RESULT', title: "WRONG!", desc: "ตอบผิด!", effect: "-15 HP", isPositive: false };
-            }
-            broadcastState();
-        }
-        else if (action.type === 'CLOSE_RESULT') {
-            gameState.activeEvent = null;
-            gameState.status = 'PLAYING';
-            nextTurn();
-            broadcastState();
-        }
-    }
-
-    function nextTurn() {
-        gameState.currentTurn = (gameState.currentTurn + 1) % gameState.players.length;
-        gameState.diceValue = '-';
-    }
-
-    function broadcastState() {
-        if(!isHost) return;
-        renderState(gameState); 
-        connections.forEach(conn => {
-            conn.send({ type: 'SYNC_STATE', state: gameState });
-        });
-    }
-
-    /* ================= CLIENT LOGIC ================= */
-    function clientJoinRoom() {
-        let code = document.getElementById('input-room-code').value.toUpperCase();
-        if(code.length !== 4) return alert("Please enter 4-digit code");
-        
-        let joinStatus = document.getElementById('join-status');
-        joinStatus.innerText = "CONNECTING...";
-        joinStatus.style.color = "var(--neon-yellow)";
-        
-        peer = new Peer();
-        
-        peer.on('open', (id) => {
-            hostConnection = peer.connect(roomPrefix + code);
-            
-            hostConnection.on('open', () => {
-                joinStatus.innerText = "CONNECTED! WAITING FOR HOST...";
-                joinStatus.style.color = "var(--neon-green)";
-            });
-
-            hostConnection.on('data', (data) => {
-                if (data.type === 'ERROR') {
-                    joinStatus.innerText = data.message;
-                    joinStatus.style.color = "var(--neon-red)";
-                    hostConnection.close();
-                    return;
-                }
-                if (data.type === 'SYNC_STATE') {
-                    if(myPlayerId === -1) myPlayerId = data.state.players.length - 1; 
-                    renderState(data.state);
-                }
-            });
-            
-            hostConnection.on('close', () => {
-                alert("HOST DISCONNECTED (คนสร้างห้องออกจากเกม)");
-                location.reload();
-            });
-        });
-
-        peer.on('error', (err) => {
-            if (err.type === 'peer-unavailable') {
-                 joinStatus.innerText = "ROOM NOT FOUND! (โปรดตรวจสอบรหัสห้องอีกครั้ง)";
-            } else {
-                 joinStatus.innerText = "ERROR: " + err.type;
-            }
-            joinStatus.style.color = "var(--neon-red)";
-        });
-    }
-
-    function sendActionToHost(action) {
-        if (isHost) {
-            processClientAction(myPlayerId, action);
-        } else {
-            hostConnection.send(action);
-        }
-    }
-
-    /* ================= SHARED RENDER LOGIC ================= */
-    function createPlayerObj(id, name) {
-        return { id: id, name: name, hp: 100, balance: 55, score: 0, pos: 0, color: PLAYER_COLORS[id % PLAYER_COLORS.length] };
-    }
-
-    function updateLobbyUI() {
-        if(isHost) {
-            document.getElementById('host-players-list').innerText = `PLAYERS CONNECTED: ${gameState.players.length}/18`;
-            document.getElementById('btn-start-game').disabled = gameState.players.length < 1; 
-        }
-    }
-
-    function renderState(state) {
-        gameState = state; 
-
-        if (gameState.status === 'LOBBY') return;
-        if (document.getElementById('game-screen').classList.contains('active') === false) {
-            showScreen('game-screen');
-            if(!document.getElementById('node-0')) generateBoard(); 
-        }
-
-        let hud = document.getElementById('players-hud');
-        hud.innerHTML = '<h2 style="margin-bottom: 20px; color: var(--neon-blue);">LEADERBOARD</h2>';
-        
-        gameState.players.forEach(p => {
-            let isTurn = (gameState.currentTurn === p.id);
-            let isMe = (myPlayerId === p.id);
-            
-            hud.innerHTML += `
-                <div class="player-stat-card ${isTurn ? 'my-turn' : ''} ${isMe ? 'is-me' : ''}">
-                    <h3 style="color: ${p.color};">${p.name}</h3>
-                    <div class="stat-label"><span>HP</span><span>${p.hp}</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width: ${p.hp}%; background: var(--neon-red);"></div></div>
-                    <div class="stat-label" style="margin-top: 5px;"><span>BAL</span><span>${p.balance}</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width: ${p.balance}%; background: var(--neon-blue);"></div></div>
-                    <div class="stat-label" style="margin-top: 5px;"><span>SCORE</span><span style="color:var(--neon-yellow)">${p.score}</span></div>
-                </div>
-            `;
-        });
-
-        let isMyTurn = (gameState.currentTurn === myPlayerId);
-        document.getElementById('turn-indicator').innerText = `TURN: ${gameState.players[gameState.currentTurn].name}`;
-        document.getElementById('dice-result').innerText = gameState.diceValue;
-        document.getElementById('btn-roll').disabled = !isMyTurn || gameState.status !== 'PLAYING';
-
-        document.querySelectorAll('.player-token').forEach(el => el.remove());
-        gameState.players.forEach(p => {
-            let node = document.getElementById('node-' + p.pos);
-            if(node) {
-                let t = document.createElement('div');
-                t.className = 'player-token';
-                t.style.background = p.color;
-                t.innerText = p.id + 1;
-                // ปรับให้การซ้อนกันของตัวเดินดูง่ายขึ้นในช่องที่เล็กลง
-                t.style.transform = `translate(${(p.id % 4) * 8}px, ${Math.floor(p.id / 4) * 8}px)`;
-                node.appendChild(t);
-            }
-        });
-
-        document.getElementById('crisis-modal').style.display = 'none';
-        document.getElementById('result-modal').style.display = 'none';
-
-        if (gameState.status === 'EVENT' && gameState.activeEvent) {
-            let ev = gameState.activeEvent;
-            
-            if (ev.type === 'QUIZ') {
-                let q = QUESTIONS[ev.qIdx];
-                let targetPlayer = gameState.players[ev.pId];
-                
-                document.getElementById('crisis-player').innerText = `Target: ${targetPlayer.name}`;
-                document.getElementById('crisis-desc').innerText = q.q;
-                
-                let choicesDiv = document.getElementById('crisis-choices');
-                choicesDiv.innerHTML = '';
-                
-                let isMyQuiz = (myPlayerId === ev.pId);
-                
-                q.c.forEach((cText, i) => {
-                    let b = document.createElement('button');
-                    b.className = 'choice-btn';
-                    b.innerText = cText;
-                    b.disabled = !isMyQuiz; 
-                    b.onclick = () => {
-                        sendActionToHost({ type: 'ANSWER_QUIZ', isCorrect: (i === q.a) });
-                    };
-                    choicesDiv.appendChild(b);
-                });
-                
-                document.getElementById('crisis-modal').style.display = 'flex';
-            } 
-            else if (ev.type === 'RESULT') {
-                document.getElementById('result-title').innerText = ev.title;
-                document.getElementById('result-title').style.color = ev.isPositive ? 'var(--neon-green)' : 'var(--neon-red)';
-                document.getElementById('result-desc').innerText = ev.desc;
-                document.getElementById('result-effect').innerText = ev.effect;
-                
-                document.getElementById('btn-result-close').style.display = (myPlayerId === gameState.currentTurn) ? 'inline-block' : 'none';
-                document.getElementById('result-modal').style.display = 'flex';
-            }
-        }
-    }
-
-    /* ================= ACTIONS ================= */
-    function actionRollDice() {
-        document.getElementById('btn-roll').disabled = true;
-        document.getElementById('dice-result').innerText = "🎲";
-        
-        setTimeout(() => {
-            sendActionToHost({ type: 'ROLL_DICE' });
-        }, 500);
-    }
-
-    function closeResultModal() {
-        sendActionToHost({ type: 'CLOSE_RESULT' });
-    }
-
-    document.querySelector("button[onclick=\"showScreen('lobby-host')\"]").onclick = () => {
-        showScreen('lobby-host');
-        initHost();
-    };
-
-</script>
-</body>
-</html>
+  return (
+    <div>
+      <h2>ห้อง: {roomData.roomName}</h2>
+      
+      {/* ถ้าเป็น isHost ถึงจะแสดงเมนูนี้ */}
+      {isHost && (
+        <div className="admin-menu">
+          <h3>ตั้งค่าจำนวนข้อ</h3>
+          <button onClick={() => updateQuestionCount(-1)}>-</button>
+          <span> {roomData.questionCount} </span>
+          <button onClick={() => updateQuestionCount(1)}>+</button>
+        </div>
+      )}
+      
+      {/* ส่วนที่ผู้เล่นทุกคนมองเห็น */}
+      <div className="player-view">
+        <p>จำนวนข้อทั้งหมด: {roomData.questionCount} ข้อ</p>
+      </div>
+    </div>
+  );
+}
