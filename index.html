@@ -1,880 +1,803 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIGITAL CITIZEN: BOSS BATTLE</title>
+    <title>ENDOCRINE: HORMONE BALANCE</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap');
+
         :root {
-            --bg-color: #0d0f17;
-            --panel-bg: #161a29;
-            --border-color: #2a324d;
-            --accent-gold: #ffcc00;
-            --accent-red: #ff3366;
-            --accent-green: #00ffcc;
-            --accent-blue: #0099ff;
-            --text-color: #f0f4fc;
+            --bg-color: #050b14;
+            --neon-blue: #00e5ff;
+            --neon-red: #ff1744;
+            --neon-green: #00e676;
+            --neon-yellow: #ffea00;
+            --glass-bg: rgba(10, 25, 45, 0.7);
+            --glass-border: rgba(0, 229, 255, 0.3);
+            font-family: 'Rajdhani', sans-serif;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { background-color: var(--bg-color); color: #fff; overflow: hidden; width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; text-transform: uppercase; text-shadow: 0 0 10px currentColor; }
+        
+        .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, #0a192f 0%, var(--bg-color) 100%); }
+        .screen.active { display: flex; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-        }
+        .btn { padding: 15px 30px; margin: 10px; background: transparent; color: var(--neon-blue); border: 2px solid var(--neon-blue); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; cursor: pointer; transition: all 0.3s; text-transform: uppercase; border-radius: 5px; box-shadow: 0 0 10px rgba(0,229,255,0.2) inset; }
+        .btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); transform: scale(1.05); }
+        .btn:disabled { border-color: #555; color: #555; cursor: not-allowed; box-shadow: none; }
+        
+        .btn-red { color: var(--neon-red); border-color: var(--neon-red); box-shadow: 0 0 10px rgba(255,23,68,0.2) inset; }
+        .btn-red:hover { background: var(--neon-red); color: #000; box-shadow: 0 0 20px var(--neon-red); }
 
-        #game-container {
-            width: 960px;
-            min-height: 640px;
-            background: radial-gradient(circle at center, #1b2238 0%, #090b10 100%);
-            border: 3px solid var(--border-color);
-            border-radius: 16px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 153, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Screen Management */
-        .screen {
-            display: none;
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-            padding: 24px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            overflow-y: auto;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        /* Header Navigation */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            background: rgba(22, 26, 41, 0.8);
-            border-bottom: 2px solid var(--border-color);
-            z-index: 10;
-        }
-
-        .user-stats-bar {
-            display: flex;
-            gap: 16px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .stat-badge {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        /* Titles */
-        .title-large {
-            font-size: 32px;
-            font-weight: 900;
-            text-align: center;
-            color: var(--accent-gold);
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-            margin-bottom: 8px;
-            letter-spacing: 2px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #8a99ad;
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-
-        /* Buttons */
-        .btn {
-            background: linear-gradient(135deg, #2a3459 0%, #161c33 100%);
-            border: 2px solid var(--border-color);
-            color: var(--text-color);
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        .btn:hover {
-            border-color: var(--accent-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 0 12px rgba(0, 153, 255, 0.4);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #0099ff 0%, #0055ff 100%);
-            border-color: #66b2ff;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ff3366 0%, #cc0033 100%);
-            border-color: #ff6688;
-        }
-
-        .btn-disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            border-color: #444;
-        }
-
-        /* Menu Grid */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            max-width: 600px;
-            margin: 40px auto;
-        }
-
-        /* Boss Room Grid */
-        .boss-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 20px;
-            padding: 10px;
-        }
-
-        .boss-card {
-            background: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .boss-card:hover {
-            border-color: var(--accent-gold);
-            transform: translateY(-4px);
-        }
-
-        .boss-card.locked {
-            filter: grayscale(0.8);
-            opacity: 0.6;
-        }
-
-        .boss-avatar {
-            font-size: 64px;
-            margin: 10px 0;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-        }
-
-        /* Battle Arena */
-        .battle-arena {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(10, 14, 26, 0.7);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            position: relative;
-            min-height: 220px;
-        }
-
-        .combatant-box {
-            width: 280px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 18px;
-            background: #090a10;
-            border: 1px solid var(--border-color);
-            border-radius: 9px;
-            overflow: hidden;
-            margin: 6px 0;
-            position: relative;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
-        .hp-fill { background: linear-gradient(90deg, #ff3366, #ff6600); }
-        .exp-fill { background: linear-gradient(90deg, #00ffcc, #0099ff); }
-
-        .progress-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #000;
-        }
-
-        /* VS & Combo */
-        .vs-box {
-            text-align: center;
-        }
-
-        .combo-badge {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--accent-gold);
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
-            animation: pulse 0.5s infinite alternate;
-        }
-
-        /* Quiz Panel */
-        .quiz-panel {
-            background: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            flex-grow: 1;
-        }
-
-        .question-tag {
-            font-size: 12px;
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-            align-self: flex-start;
-            background: var(--accent-blue);
-            color: #000;
-        }
-
-        .question-text {
-            font-size: 16px;
-            font-weight: 600;
-            line-height: 1.4;
-        }
-
-        .answers-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .answer-btn {
-            background: #1a2238;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: left;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s;
-        }
-
-        .answer-btn:hover {
-            background: #253254;
-            border-color: var(--accent-blue);
-        }
-
-        /* Floating Damage Text */
-        .damage-pop {
-            position: absolute;
-            font-size: 28px;
-            font-weight: 900;
-            color: var(--accent-red);
-            text-shadow: 0 0 8px #000;
-            animation: floatUp 0.8s forwards;
-            pointer-events: none;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            50% { transform: translateY(-30px) scale(1.3); }
-            100% { opacity: 0; transform: translateY(-50px) scale(0.8); }
-        }
-
-        @keyframes pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
-        }
-
+        /* HUD & Game Layout */
+        #game-screen { display: none; flex-direction: row; width: 100%; height: 100%; }
+        #game-screen.active { display: flex; }
+        
+        .sidebar { width: 300px; background: var(--glass-bg); border-right: 1px solid var(--glass-border); padding: 20px; display: flex; flex-direction: column; backdrop-filter: blur(10px); z-index: 10; }
+        .main-area { flex: 1; position: relative; display: flex; flex-direction: column; }
+        
+        /* Stats */
+        .stat-box { margin-bottom: 15px; }
+        .stat-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 5px; }
+        .progress-bar { width: 100%; height: 12px; background: #111; border: 1px solid #333; border-radius: 6px; overflow: hidden; position: relative; }
+        .progress-fill { height: 100%; transition: width 0.3s, background-color 0.3s; }
+        .balance-safe-zone { position: absolute; left: 40%; width: 30%; height: 100%; background: rgba(0,230,118,0.2); border-left: 1px dashed var(--neon-green); border-right: 1px dashed var(--neon-green); pointer-events: none; }
+        
+        /* Board */
+        .board-container { flex: 1; padding: 40px; position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 15px; }
+        .node { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--neon-blue); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; text-align: center; position: relative; background: rgba(0,229,255,0.1); box-shadow: 0 0 15px rgba(0,229,255,0.2); transition: 0.3s; }
+        .node.boss-node { border-color: var(--neon-red); background: rgba(255,23,68,0.1); box-shadow: 0 0 20px rgba(255,23,68,0.5); }
+        .player-token { width: 30px; height: 30px; background: var(--neon-yellow); border-radius: 50%; position: absolute; top: -10px; left: -10px; box-shadow: 0 0 15px var(--neon-yellow); transition: all 0.5s ease-in-out; z-index: 5; border: 2px solid #000; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 0.8rem;}
+        
         /* Modals */
-        .modal {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 20px;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; box-shadow: 0 0 30px rgba(0,229,255,0.2); text-align: center; }
+        .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .choice-btn { background: rgba(0,229,255,0.1); border: 1px solid var(--neon-blue); color: #fff; padding: 15px; cursor: pointer; transition: 0.2s; border-radius: 5px; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem;}
+        .choice-btn:hover { background: var(--neon-blue); color: #000; }
+        
+        /* Cards & Bottom Bar */
+        .bottom-bar { height: 160px; background: var(--glass-bg); border-top: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; gap: 15px; overflow-x: auto; }
+        .card { width: 100px; height: 140px; border: 1px solid var(--neon-blue); border-radius: 8px; background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(0,0,0,0.8)); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 0.9rem; text-align: center; padding: 5px; position: relative;}
+        .card:hover { transform: translateY(-10px); box-shadow: 0 0 15px var(--neon-blue); background: rgba(0,229,255,0.2); }
+        .card .type { font-size: 0.6rem; color: var(--neon-yellow); position: absolute; top: 5px; }
 
-        .modal-content {
-            background: var(--panel-bg);
-            border: 2px solid var(--accent-gold);
-            border-radius: 16px;
-            padding: 32px;
-            text-align: center;
-            max-width: 480px;
-            width: 100%;
-            box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);
-        }
+        /* Animation */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .anim-pulse { animation: pulse 2s infinite; }
+        @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+        .scanner-line { width: 100%; height: 2px; background: var(--neon-green); position: absolute; box-shadow: 0 0 10px var(--neon-green); animation: scan 2s linear infinite; }
+
+        /* Database */
+        .db-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; max-height: 60vh; overflow-y: auto; padding: 10px;}
+        .db-item { border: 1px solid var(--neon-blue); padding: 15px; background: rgba(0,229,255,0.05); text-align: left; }
+        .db-item h4 { color: var(--neon-yellow); margin-bottom: 5px; }
+
+        /* Boss Battle */
+        #boss-ui { display: none; background: rgba(255,0,0,0.1); border: 2px solid var(--neon-red); margin: 20px; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 0 20px rgba(255,0,0,0.3); }
+        
+        .controls-area { display: flex; justify-content: space-around; padding: 10px; background: rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-
-    <!-- GAME HEADER -->
-    <div class="game-header">
-        <div style="font-weight: 900; color: var(--accent-gold); font-size: 18px;">⚔️ DIGITAL CITIZEN</div>
-        <div class="user-stats-bar">
-            <div class="stat-badge" id="header-lvl">Lv. 1</div>
-            <div class="stat-badge" id="header-coin">🪙 0</div>
-            <div class="stat-badge" id="header-score">🏆 0</div>
-        </div>
+    <!-- Main Menu -->
+    <div id="main-menu" class="screen active">
+        <h1 class="anim-pulse" style="font-size: 3.5rem; color: var(--neon-blue); text-align: center;">ENDOCRINE<br><span style="color: #fff;">HORMONE BALANCE</span></h1>
+        <p style="margin: 20px 0; font-size: 1.2rem; letter-spacing: 2px;">"Control the Hormones. Restore the Balance."</p>
+        <button class="btn" onclick="showScreen('setup-screen')">START GAME</button>
+        <button class="btn" onclick="showScreen('database-screen'); renderDatabase();">HORMONE DATABASE</button>
+        <button class="btn" onclick="document.getElementById('tutorial-modal').style.display='flex'">HOW TO PLAY</button>
     </div>
 
-    <!-- MAIN MENU SCREEN -->
-    <div id="screen-menu" class="screen active">
-        <div style="margin: auto 0; text-align: center;">
-            <div class="title-large">⚔️ DIGITAL CITIZEN: BOSS BATTLE</div>
-            <div class="subtitle">เส้นทางสู่การเป็นพลเมืองดิจิทัล | RPG Quiz Game</div>
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen">
+        <h2>SELECT GAME MODE</h2>
+        <div style="margin: 30px 0; display: flex; gap: 20px;">
+            <button class="btn" onclick="setPlayers(1)" id="btn-p1">SOLO MODE</button>
+            <button class="btn" onclick="setPlayers(2)" id="btn-p2">2 PLAYERS</button>
+            <button class="btn" onclick="setPlayers(3)" id="btn-p3">3 PLAYERS</button>
+            <button class="btn" onclick="setPlayers(4)" id="btn-p4">4 PLAYERS</button>
+        </div>
+        <button class="btn btn-red" onclick="initGame()" style="margin-top: 20px;">START MISSION</button>
+        <button class="btn" onclick="showScreen('main-menu')" style="margin-top: 10px; font-size: 0.9rem;">BACK</button>
+    </div>
 
-            <div class="menu-grid">
-                <button class="btn btn-primary" onclick="showScreen('boss-room')">⚔️ BOSS ROOM</button>
-                <button class="btn" onclick="openInfoModal('👤 CHARACTER STATS', getCharacterSummary())">👤 CHARACTER</button>
-                <button class="btn" onclick="openInfoModal('🎒 INVENTORY', getInventorySummary())">🎒 INVENTORY</button>
-                <button class="btn" onclick="openInfoModal('🛒 SHOP', 'ร้านค้ากำลังจะเปิดให้บริการในอัปเดตถัดไป!')">🛒 SHOP</button>
-                <button class="btn" onclick="openInfoModal('🏆 ACHIEVEMENTS', getAchievementSummary())">🏆 ACHIEVEMENT</button>
-                <button class="btn" onclick="resetSaveData()">🔄 RESET DATA</button>
+    <!-- Database Screen -->
+    <div id="database-screen" class="screen">
+        <h2>DIGITAL LABORATORY: DATABASE</h2>
+        <div class="db-grid" id="db-content" style="width: 80%; max-width: 900px;"></div>
+        <button class="btn" onclick="showScreen('main-menu')" style="margin-top: 20px;">BACK TO MENU</button>
+    </div>
+
+    <!-- Main Game Screen -->
+    <div id="game-screen">
+        <!-- Sidebar HUD -->
+        <div class="sidebar">
+            <h2 id="player-name" style="color: var(--neon-yellow); margin-bottom: 20px;">PLAYER 1</h2>
+            
+            <div class="stat-box">
+                <div class="stat-label"><span>❤️ HP</span><span id="stat-hp">100/100</span></div>
+                <div class="progress-bar"><div id="bar-hp" class="progress-fill" style="width: 100%; background: var(--neon-red);"></div></div>
             </div>
-        </div>
-    </div>
-
-    <!-- BOSS ROOM SCREEN -->
-    <div id="screen-boss-room" class="screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h2>🏰 เลือก Boss เพื่อเข้าสู่การต่อสู้</h2>
-            <button class="btn" onclick="showScreen('menu')">🔙 กลับหน้าหลัก</button>
-        </div>
-        <div class="boss-grid" id="boss-list-container"></div>
-    </div>
-
-    <!-- BATTLE SCREEN -->
-    <div id="screen-battle" class="screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div id="battle-phase-indicator" style="font-size: 14px; font-weight: bold; color: var(--accent-gold);">PHASE 1</div>
-            <button class="btn btn-danger" style="padding: 4px 12px; font-size: 12px;" onclick="surrenderBattle()">🏳️ ยอมแพ้</button>
-        </div>
-
-        <div class="battle-arena" id="arena-box">
-            <!-- PLAYER SIDE -->
-            <div class="combatant-box">
-                <div style="font-size: 48px;" id="player-avatar">🧙</div>
-                <div style="font-weight: bold;" id="player-name">PLAYER</div>
-                <div style="font-size: 12px; color: #8a99ad;" id="player-lvl-display">Lv. 1</div>
-                
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill hp-fill" id="player-hp-bar" style="width: 100%;"></div>
-                    <div class="progress-text" id="player-hp-text">500/500 HP</div>
+            
+            <div class="stat-box" style="position: relative;">
+                <div class="stat-label"><span>⚖️ BALANCE</span><span id="stat-bal">55/100</span></div>
+                <div class="progress-bar">
+                    <div class="balance-safe-zone"></div>
+                    <div id="bar-bal" class="progress-fill" style="width: 55%; background: var(--neon-blue);"></div>
                 </div>
+                <small id="bal-status" style="color: var(--neon-green); display: block; text-align: right; margin-top: 5px;">BALANCED</small>
+            </div>
+            
+            <div class="stat-box">
+                <div class="stat-label"><span>🧠 KNOWLEDGE</span><span id="stat-kno">0</span></div>
+            </div>
+            
+            <div class="stat-box">
+                <div class="stat-label"><span>🏆 SCORE</span><span id="stat-sco">0</span></div>
             </div>
 
-            <!-- VS / COMBO -->
-            <div class="vs-box">
-                <div style="font-size: 28px; font-weight: 900; color: #556688;">VS</div>
-                <div class="combo-badge" id="combo-display" style="display: none;">x1 COMBO</div>
-            </div>
-
-            <!-- BOSS SIDE -->
-            <div class="combatant-box">
-                <div style="font-size: 56px;" id="boss-avatar">👾</div>
-                <div style="font-weight: bold; color: var(--accent-red);" id="boss-name">BOSS</div>
-                <div style="font-size: 12px; color: #8a99ad;" id="boss-lvl-display">Lv. 1</div>
-                
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill hp-fill" id="boss-hp-bar" style="width: 100%;"></div>
-                    <div class="progress-text" id="boss-hp-text">500/500 HP</div>
+            <div style="margin-top: auto;">
+                <button class="btn" style="width: 100%; padding: 10px; font-size: 1rem;" onclick="simulateQR()">SCAN CARD (QR)</button>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+                    <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="toggleSound()">🔊 SOUND</button>
+                    <button class="btn btn-red" style="padding: 5px 10px; font-size: 0.8rem;" onclick="endGame('abort')">ABORT</button>
                 </div>
             </div>
         </div>
 
-        <!-- QUIZ PANEL -->
-        <div class="quiz-panel">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="question-tag" id="quiz-category">DIGITAL SAFETY</span>
-                <span style="font-size: 12px; color: #8a99ad;">ตอบถูกต้องเพื่อโจมตี Boss</span>
+        <!-- Main Board Area -->
+        <div class="main-area">
+            <!-- Boss UI (Hidden by default) -->
+            <div id="boss-ui">
+                <h2 id="boss-name" style="color: var(--neon-red);">BOSS BATTLE</h2>
+                <p id="boss-desc" style="margin: 10px 0;"></p>
+                <div class="stat-label"><span>BOSS HP</span><span id="boss-hp-text">100/100</span></div>
+                <div class="progress-bar" style="height: 20px;"><div id="boss-hp-bar" class="progress-fill" style="width: 100%; background: var(--neon-red);"></div></div>
             </div>
-            <div class="question-text" id="quiz-question">คำถามจะแสดงที่นี่...</div>
-            <div class="answers-grid" id="answers-container"></div>
-        </div>
-    </div>
 
-    <!-- GENERIC INFO MODAL -->
-    <div id="modal-info" class="modal">
-        <div class="modal-content">
-            <h2 id="modal-title" style="color: var(--accent-gold); margin-bottom: 16px;">TITLE</h2>
-            <div id="modal-body" style="font-size: 14px; line-height: 1.6; margin-bottom: 24px; text-align: left;">BODY</div>
-            <button class="btn btn-primary" onclick="closeModal('modal-info')">ตกลง</button>
-        </div>
-    </div>
+            <div class="board-container" id="board">
+                <!-- Nodes generated by JS -->
+            </div>
+            
+            <div class="controls-area">
+                <div style="text-align: center; flex: 1;">
+                    <h3 id="dice-result" style="font-size: 2rem; color: var(--neon-yellow); min-height: 40px;">-</h3>
+                    <button class="btn" id="btn-roll" onclick="rollDice()" style="width: 200px;">ROLL DICE</button>
+                </div>
+                <div id="turn-indicator" style="flex: 1; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--neon-blue);">
+                    TURN: PLAYER 1
+                </div>
+            </div>
 
-    <!-- RESULT MODAL (VICTORY / DEFEAT) -->
-    <div id="modal-result" class="modal">
-        <div class="modal-content" id="result-card">
-            <h1 id="result-title" style="font-size: 36px; margin-bottom: 12px;">🏆 VICTORY!</h1>
-            <div id="result-stats" style="margin-bottom: 24px; font-size: 16px; line-height: 1.8;"></div>
-            <div style="display: flex; gap: 12px; justify-content: center;">
-                <button class="btn btn-primary" id="result-btn-next" onclick="closeModal('modal-result'); showScreen('boss-room');">🏰 BOSS ROOM</button>
+            <!-- Cards Hand -->
+            <div class="bottom-bar" id="card-hand">
+                <!-- Cards generated by JS -->
             </div>
         </div>
     </div>
 
-</div>
+    <!-- Modals -->
+    <!-- Crisis Modal -->
+    <div id="crisis-modal" class="modal-overlay">
+        <div class="modal">
+            <h2 id="crisis-title" style="color: var(--neon-yellow);">⚠️ HORMONE CRISIS</h2>
+            <p id="crisis-desc" style="margin: 20px 0; font-size: 1.2rem;"></p>
+            <div class="choices" id="crisis-choices"></div>
+            <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+                <button class="btn" onclick="useHint()" id="btn-hint">HINT (-3 Score)</button>
+                <p id="hint-text" style="color: var(--neon-blue); display: none; font-size: 0.9rem; align-self: center;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal-overlay">
+        <div class="modal">
+            <h2 id="result-title"></h2>
+            <p id="result-desc" style="margin: 20px 0; font-size: 1.1rem;"></p>
+            <p id="result-effect" style="color: var(--neon-yellow); font-weight: bold; margin-bottom: 20px;"></p>
+            <button class="btn" onclick="closeResult()">CONTINUE</button>
+        </div>
+    </div>
+
+    <!-- QR Scanner Simulation -->
+    <div id="qr-modal" class="modal-overlay">
+        <div class="modal" style="position: relative; overflow: hidden; height: 300px; display: flex; flex-direction: column; justify-content: center;">
+            <div class="scanner-line"></div>
+            <h2 class="anim-pulse" style="color: var(--neon-green);">SCANNING...</h2>
+            <p id="qr-result" style="margin-top: 20px; font-size: 1.5rem; display: none; color: var(--neon-yellow);"></p>
+            <button class="btn" id="btn-qr-close" onclick="closeQR()" style="display: none; margin-top: 20px;">COLLECT CARD</button>
+        </div>
+    </div>
+
+    <!-- Game Over / Victory -->
+    <div id="end-modal" class="modal-overlay">
+        <div class="modal">
+            <h1 id="end-title" style="font-size: 3rem;"></h1>
+            <p id="end-reason" style="margin: 10px 0;"></p>
+            <div style="text-align: left; background: rgba(0,0,0,0.5); padding: 20px; margin: 20px 0; border-radius: 5px; border: 1px solid var(--neon-blue);">
+                <p>SCORE: <span id="end-score" style="color: var(--neon-yellow);">0</span></p>
+                <p>KNOWLEDGE: <span id="end-kno" style="color: var(--neon-blue);">0</span></p>
+                <p>RANK: <span id="end-rank" style="color: var(--neon-green); font-weight: bold;"></span></p>
+            </div>
+            <button class="btn" onclick="location.reload()">MAIN MENU</button>
+        </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorial-modal" class="modal-overlay">
+        <div class="modal" style="max-height: 80vh; overflow-y: auto; text-align: left;">
+            <h2 style="color: var(--neon-blue); text-align: center; margin-bottom: 20px;">HOW TO PLAY</h2>
+            <p><strong>Goal:</strong> รักษาสมดุลฮอร์โมน (Balance 40-70) ไม่ให้ HP หมด และเอาชนะ Boss ทั้งหมด!</p>
+            <ul style="margin-left: 20px; line-height: 1.6; margin-top: 10px;">
+                <li>ทอยลูกเต๋าเพื่อเดินบนบอร์ด (ร่างกายมนุษย์)</li>
+                <li><strong>Crisis Event:</strong> ตอบคำถามระบบต่อมไร้ท่อให้ถูกต้องเพื่อรับคะแนนและรักษาสมดุล</li>
+                <li><strong>Balance:</strong> หากหลุดจาก 40-70 จะเสีย HP ทุกเทิร์น!</li>
+                <li><strong>Scan Card:</strong> สุ่มรับการ์ดฮอร์โมน/ต่อม เพื่อใช้เพิ่มพลัง หรือสร้าง Combo ในการสู้บอส</li>
+                <li><strong>Boss Battle:</strong> เมื่อตกช่องบอส ต้องตอบคำถามต่อเนื่องเพื่อลด HP บอส!</li>
+            </ul>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn" onclick="document.getElementById('tutorial-modal').style.display='none'">CLOSE</button>
+            </div>
+        </div>
+    </div>
 
 <script>
-/* ==========================================================================
-   GAME DATA STRUCTURES & DATABASE
-   ========================================================================== */
+    /* ================= GAME DATA ================= */
+    const GAME_DATA = {
+        hormones: [
+            { name: "Insulin", gland: "Pancreas", target: "Body Cells/Liver", func: "Decreases Blood Glucose by promoting cellular uptake.", low: "Diabetes Mellitus", high: "Hypoglycemia" },
+            { name: "Glucagon", gland: "Pancreas", target: "Liver", func: "Increases Blood Glucose by breaking down glycogen.", low: "Hypoglycemia", high: "Hyperglycemia" },
+            { name: "ADH", gland: "Posterior Pituitary", target: "Kidneys", func: "Promotes water reabsorption, reducing urine volume.", low: "Diabetes Insipidus", high: "Water retention" },
+            { name: "Thyroxine (T4)", gland: "Thyroid", target: "Most cells", func: "Increases basal metabolic rate.", low: "Hypothyroidism / Goiter", high: "Hyperthyroidism / Graves' disease" },
+            { name: "TSH", gland: "Anterior Pituitary", target: "Thyroid", func: "Stimulates secretion of thyroid hormones.", low: "Secondary Hypothyroidism", high: "Goiter (if iodine lacking)" },
+            { name: "Cortisol", gland: "Adrenal Cortex", target: "Most cells", func: "Long-term stress response, increases blood glucose.", low: "Addison's disease", high: "Cushing's syndrome" },
+            { name: "Adrenaline", gland: "Adrenal Medulla", target: "Heart, Blood vessels", func: "Short-term stress (Fight or Flight), increases HR.", low: "Rare", high: "Pheochromocytoma" },
+            { name: "PTH", gland: "Parathyroid", target: "Bones, Kidneys", func: "Increases blood calcium levels.", low: "Muscle spasms (Tetany)", high: "Bone weakening, Kidney stones" },
+            { name: "Calcitonin", gland: "Thyroid", target: "Bones", func: "Decreases blood calcium levels.", low: "Usually asymptomatic", high: "Rare" },
+            { name: "Growth Hormone", gland: "Anterior Pituitary", target: "Bones, Muscles", func: "Promotes growth and metabolism.", low: "Dwarfism", high: "Gigantism / Acromegaly" },
+            { name: "Melatonin", gland: "Pineal", target: "Brain", func: "Regulates sleep-wake cycle (Circadian rhythm).", low: "Insomnia", high: "Drowsiness" }
+        ],
+        questions: [
+            // Glucose (1-5)
+            { q: "Blood glucose level is HIGH after a heavy meal. Which hormone should be released?", c: ["Insulin", "Glucagon", "ADH", "Thyroxine"], a: 0, exp: "Insulin helps cells absorb glucose, lowering blood sugar." },
+            { q: "You are fasting for 12 hours. Blood glucose drops. What does the Pancreas release?", c: ["Insulin", "Glucagon", "Cortisol", "Adrenaline"], a: 1, exp: "Glucagon signals the liver to release stored glucose." },
+            { q: "Which condition is caused by a severe lack of Insulin?", c: ["Diabetes Insipidus", "Goiter", "Diabetes Mellitus", "Acromegaly"], a: 2, exp: "Diabetes Mellitus is characterized by high blood sugar due to lack of insulin." },
+            { q: "Where is Insulin produced?", c: ["Alpha cells (Pancreas)", "Beta cells (Pancreas)", "Adrenal Cortex", "Thyroid"], a: 1, exp: "Beta cells in the Islets of Langerhans produce Insulin." },
+            { q: "If Glucagon is released, what happens to glycogen in the liver?", c: ["Built up", "Broken down into glucose", "Converted to fat", "Excreted in urine"], a: 1, exp: "Glycogenolysis: breakdown of glycogen to glucose." },
+            // Metabolism & Thyroid (6-10)
+            { q: "Which element is crucial for the synthesis of Thyroxine (T4)?", c: ["Calcium", "Iron", "Iodine", "Sodium"], a: 2, exp: "Lack of iodine prevents T4 synthesis, leading to Goiter." },
+            { q: "Thyroxine levels are low. Due to Negative Feedback, what happens to TSH?", c: ["Decreases", "Increases", "Stops completely", "Turns into TRH"], a: 1, exp: "Low T4 removes inhibition, causing the Pituitary to release more TSH." },
+            { q: "A patient has exophthalmos (bulging eyes), high heart rate, and weight loss. Likely diagnosis?", c: ["Hypothyroidism", "Hyperthyroidism", "Addison's Disease", "Dwarfism"], a: 1, exp: "These are classic signs of overactive thyroid (e.g., Graves' disease)." },
+            { q: "Which gland secretes TRH to stimulate the Pituitary?", c: ["Thymus", "Hypothalamus", "Pineal", "Adrenal"], a: 1, exp: "Hypothalamus acts as the master control, secreting releasing hormones." },
+            { q: "What is the primary function of Thyroxine?", c: ["Lower blood sugar", "Increase basal metabolic rate", "Control sleep", "Stimulate bone growth only"], a: 1, exp: "T4 controls how fast the body uses energy (metabolism)." },
+            // Stress (11-15)
+            { q: "You encounter a wild dog. Heart rate spikes. Which hormone is acting immediately?", c: ["Cortisol", "Adrenaline", "Insulin", "PTH"], a: 1, exp: "Adrenaline (Epinephrine) controls the short-term fight-or-flight response." },
+            { q: "Which part of the adrenal gland produces Adrenaline?", c: ["Adrenal Cortex", "Adrenal Medulla", "Zona fasciculata", "Capsule"], a: 1, exp: "The medulla (inner part) produces adrenaline via nervous system stimulation." },
+            { q: "Which hormone manages long-term stress and alters metabolism to save energy?", c: ["Adrenaline", "Cortisol", "Melatonin", "ADH"], a: 1, exp: "Cortisol (a glucocorticoid) handles chronic stress." },
+            { q: "High continuous levels of Cortisol can lead to which condition?", c: ["Cushing's Syndrome", "Addison's Disease", "Diabetes Insipidus", "Tetany"], a: 0, exp: "Cushing's involves fat redistribution (moon face) and weakened immunity." },
+            { q: "How is Adrenaline secretion triggered?", c: ["Hormonal stimulus", "Humoral stimulus", "Neural stimulus", "Positive feedback"], a: 2, exp: "The sympathetic nervous system directly stimulates the adrenal medulla." },
+            // Water & Calcium (16-20)
+            { q: "You are severely dehydrated. Which hormone prevents water loss in urine?", c: ["Aldosterone", "ADH", "Oxytocin", "PTH"], a: 1, exp: "Anti-diuretic Hormone (ADH) forces kidneys to reabsorb water." },
+            { q: "Alcohol inhibits ADH secretion. What is the immediate result?", c: ["Increased urine output", "Decreased urine output", "High blood pressure", "Bone breakdown"], a: 0, exp: "Without ADH, kidneys do not reabsorb water, causing frequent urination." },
+            { q: "Blood calcium drops. Which hormone is released to extract calcium from bones?", c: ["Calcitonin", "PTH", "Thyroxine", "GH"], a: 1, exp: "Parathyroid Hormone (PTH) stimulates osteoclasts to break down bone." },
+            { q: "Calcitonin and PTH have opposite effects. They are called:", c: ["Synergists", "Antagonists", "Agonists", "Tropic hormones"], a: 1, exp: "Antagonistic hormones work against each other to maintain balance." },
+            { q: "Lack of ADH leads to excessive urination and thirst, a condition called:", c: ["Diabetes Mellitus", "Diabetes Insipidus", "Hypercalcemia", "Acromegaly"], a: 1, exp: "Insipidus means 'tasteless' urine, distinguishing it from sugary urine in Mellitus." },
+            // Growth, Sleep, Reproduction (21-25)
+            { q: "Excess Growth Hormone (GH) in adulthood (after growth plates close) causes:", c: ["Gigantism", "Dwarfism", "Acromegaly", "Goiter"], a: 2, exp: "Bones can't lengthen, so they thicken (hands, face, feet)." },
+            { q: "Which hormone regulates the circadian rhythm (sleep-wake cycle)?", c: ["Cortisol", "Melatonin", "Serotonin", "Oxytocin"], a: 1, exp: "Produced by the Pineal gland in response to darkness." },
+            { q: "Which is a classic example of Positive Feedback?", c: ["Blood glucose regulation", "Oxytocin during childbirth", "Thyroid regulation", "Calcium regulation"], a: 1, exp: "Oxytocin increases uterine contractions, which causes more Oxytocin release." },
+            { q: "Which hormone stimulates the development of male secondary sex characteristics?", c: ["Estrogen", "Progesterone", "Testosterone", "FSH"], a: 2, exp: "Testosterone is produced in the testes." },
+            { q: "Where is the Pineal Gland located?", c: ["Neck", "Kidney", "Brain", "Chest"], a: 2, exp: "It is located deep in the center of the brain." },
+            // Advanced & Scenarios (26-30)
+            { q: "If the Pituitary gland is removed, which hormone would still be secreted normally?", c: ["TSH", "GH", "Insulin", "ACTH"], a: 2, exp: "Insulin is regulated by blood glucose (humoral), not the pituitary." },
+            { q: "A tumor in the Parathyroid gland causes hypersecretion. What happens?", c: ["Fragile bones", "Dense bones", "Low blood calcium", "Hypoglycemia"], a: 0, exp: "Excess PTH continuously drains calcium from bones." },
+            { q: "Which organ acts as both an endocrine and exocrine gland?", c: ["Thyroid", "Liver", "Pancreas", "Adrenal"], a: 2, exp: "Produces hormones (endocrine) and digestive enzymes (exocrine)." },
+            { q: "Negative feedback means:", c: ["The effect increases the stimulus", "The effect cancels/reduces the stimulus", "The body attacks its own cells", "Hormones are destroyed"], a: 1, exp: "It maintains homeostasis by reversing the direction of change." },
+            { q: "Target cells respond to a specific hormone because they have:", c: ["Specific receptors", "A nucleus", "DNA", "Enzymes"], a: 0, exp: "Hormones only bind to cells with matching receptor shapes." }
+        ],
+        bosses: [
+            { id: 0, name: "GLUCOSE CRISIS", desc: "Patient consumed 5 donuts. Blood sugar spiking!", hp: 60, weakness: "Insulin", q_indices: [0, 1, 3] },
+            { id: 1, name: "THYROID STORM", desc: "Metabolism out of control. Dangerously high HR!", hp: 60, weakness: "Negative Feedback", q_indices: [5, 6, 7] },
+            { id: 2, name: "STRESS OVERLOAD", desc: "Final exam week panic attack!", hp: 60, weakness: "Cortisol", q_indices: [10, 11, 12] },
+            { id: 3, name: "DEHYDRATION DESERT", desc: "Lost in desert, water levels critical!", hp: 60, weakness: "ADH", q_indices: [15, 16, 19] },
+            { id: 4, name: "ENDOCRINE CHAOS", desc: "Total system failure! Restore the balance!", hp: 100, weakness: "Knowledge", q_indices: [25, 26, 27, 28, 29] }
+        ]
+    };
 
-const BOSS_DATABASE = [
-    { id: 1, name: "PHISHING GOBLIN", icon: "👾", level: 1, hp: 500, atk: 40, expReward: 500, coinReward: 100, desc: "หลอกลวงด้วยลิงก์ปลอมและข้อความหลอกเอาข้อมูล" },
-    { id: 2, name: "CYBER BULLY", icon: "🧟", level: 5, hp: 1000, atk: 75, expReward: 1000, coinReward: 250, desc: "สร้างความเกลียดชังและกลั่นแกล้งบนโลกออนไลน์" },
-    { id: 3, name: "DATA THIEF", icon: "🕵️", level: 10, hp: 2000, atk: 120, expReward: 2000, coinReward: 500, desc: "แอบขโมยข้อมูลส่วนบุคคลและ รหัสผ่านที่ไม่ปลอดภัย" },
-    { id: 4, name: "FAKE NEWS MACHINE", icon: "🤖", level: 15, hp: 3500, atk: 180, expReward: 3500, coinReward: 800, desc: "แพร่กระจายข่าวปลอมและสร้างความสับสนในสังคม" },
-    { id: 5, name: "PRIVACY DEMON", icon: "👹", level: 20, hp: 5000, atk: 250, expReward: 5000, coinReward: 1200, desc: "คุกคามความเป็นส่วนตัวและแอบส่องข้อมูลของผู้อื่น" },
-    { id: 6, name: "DIGITAL DRAGON", icon: "🐉", level: 30, hp: 8000, atk: 360, expReward: 8000, coinReward: 2000, desc: "ละเมิดลิขสิทธิ์และทำลายความปลอดภัยของเครือข่าย" },
-    { id: 7, name: "DIGITAL DARK LORD", icon: "👑", level: 50, hp: 15000, atk: 550, expReward: 15000, coinReward: 5000, desc: "จอมมารภัยคุกคามไซเบอร์ขั้นสูงสุด" }
-];
+    const BOARD_SPACES = 25; // 25 nodes
+    const NODE_TYPES = ["START", "PANCREAS", "CRISIS", "THYROID", "RANDOM", "ADRENAL", "BOSS", "CRISIS", "PITUITARY", "RANDOM", "PINEAL", "CRISIS", "BOSS", "PANCREAS", "RANDOM", "THYROID", "CRISIS", "ADRENAL", "BOSS", "PITUITARY", "CRISIS", "PINEAL", "RANDOM", "CRISIS", "FINAL BOSS"];
 
-const QUESTION_DATABASE = [
-    // DIGITAL SAFETY
-    {
-        cat: "🔐 DIGITAL SAFETY",
-        q: "คุณได้รับ SMS แจ้งว่าได้รับเงินรางวัล 10,000 บาท พร้อมลิงก์ให้กรอกรหัสผ่านธนาคาร คุณควรทำอย่างไร?",
-        options: ["กดลิงก์ทันทีเพื่อรับเงิน", "ส่งต่อให้เพื่อนร่วมรับโชค", "ลบ SMS ทิ้งและไม่กดลิงก์ใดๆ", "โพสต์ถามรหัสผ่านจากเพื่อน"],
-        answer: 2,
-        explain: "ข้อความหลอกลวง (Phishing) มักใช้รางวัลมาล่อซื้อ เพื่อขโมยรหัสผ่านและข้อมูลส่วนตัว"
-    },
-    {
-        cat: "🔐 DIGITAL SAFETY",
-        q: "การตั้งรหัสผ่าน (Password) ที่ปลอดภัยที่สุดควรมีลักษณะอย่างไร?",
-        options: ["ใช้ วัน/เดือน/ปีเกิด", "ใช้ 12345678", "ผสมอักขระพิเศษ ตัวเลข และอักษรใหญ่-เล็ก", "ใช้ชื่อตัวเอง"],
-        answer: 2,
-        explain: "รหัสผ่านที่ดีควรมีความยาว 12 ตัวอักษรขึ้นไป และผสมอักขระหลากหลายประเภท"
-    },
-    {
-        cat: "🔐 DIGITAL SAFETY",
-        q: "เมื่อใช้งานคอมพิวเตอร์สาธารณะ หลังใช้งานเสร็จควรทำสิ่งใดเป็นอันดับแรก?",
-        options: ["ปิดหน้าจอทิ้งไว้", "กด Log Out ออกจากระบบทุกบัญชี", "เซฟรหัสผ่านไว้ในเบราว์เซอร์", "เปิดทิ้งไว้ให้คนอื่นใช้ต่อ"],
-        answer: 1,
-        explain: "การ Log Out ช่วยป้องกันไม่ให้ผู้อื่นสวมรอยเข้าถึงบัญชีส่วนตัวของคุณได้"
-    },
-    // DIGITAL KNOWLEDGE
-    {
-        cat: "📱 DIGITAL KNOWLEDGE",
-        q: "หากพบข่าวปาดหัวน่าตกใจบน Social Media สิ่งแรกที่ควรทำก่อนกด Share คืออะไร?",
-        options: ["แชร์ทันทีให้เพื่อนรู้ก่อนใคร", "ตรวจสอบความน่าเชื่อถือจากแหล่งข่าวต้นทาง", "ด่าทอในช่องคอมเมนต์", "แคปหน้าจอไปขายข่าว"],
-        answer: 1,
-        explain: "การเช็กก่อนแชร์ ช่วยยับยั้งการแพร่กระจายของข่าวปลอม (Fake News)"
-    },
-    {
-        cat: "📱 DIGITAL KNOWLEDGE",
-        q: "คำว่า 'Digital Footprint' หมายถึงสิ่งใด?",
-        options: ["ร่องรอยประวัติกิจกรรมที่เราทำไว้บนโลกออนไลน์", "ขนาดรองเท้าที่สั่งซื้อออนไลน์", "ไวรัสคอมพิวเตอร์ชนิดหนึ่ง", "สแกนนิ้วมือบนสมาร์ตโฟน"],
-        answer: 0,
-        explain: "ทุกการโพสต์ ค้นหา หรือคอมเมนต์ จะสร้างร่องรอยดิจิทัลที่คงอยู่ถาวรบนอินเทอร์เน็ต"
-    },
-    {
-        cat: "📱 DIGITAL KNOWLEDGE",
-        q: "การนำภาพของผู้อื่นที่มีลิขสิทธิ์มาใช้ในงานของตนเองโดยไม่ได้รับอนุญาต ถือเป็นการกระทำใด?",
-        options: ["การแบ่งปันความรู้", "การละเมิดลิขสิทธิ์ (Copyright Infringement)", "มารยาทที่ดี", "การช่วยโปรโมตผลงาน"],
-        answer: 1,
-        explain: "ผลงานสร้างสรรค์มีลิขสิทธิ์คุ้มครอง ต้องขออนุญาตหรือให้เครดิตอย่างถูกต้องเสมอ"
-    },
-    // DIGITAL RESPECT
-    {
-        cat: "❤️ DIGITAL RESPECT",
-        q: "เมื่อเห็นเพื่อนโดนล้อเลียนปมด้อยอย่างรุนแรงในกลุ่มแชตออนไลน์ คุณควรทำอย่างไร?",
-        options: ["ร่วมผสมโรงล้อเลียนด้วย", "แคปภาพไปขำต่อกับคนอื่น", "ไม่ร่วมวงล้อเลียน และแจ้งเตือนผู้ดูแลกลุ่ม", "นั่งดูเฉยๆ ไม่สนใจ"],
-        answer: 2,
-        explain: "การหยุดยั้ง Cyberbullying เริ่มจากการไม่เป็นผู้สนับสนุน และช่วยปกป้องเหยื่อ"
-    },
-    {
-        cat: "❤️ DIGITAL RESPECT",
-        q: "ก่อนแอบถ่ายรูปเพื่อนแล้วนำไปโพสต์ลงโซเชียล สิ่งที่ต้องทำคืออะไร?",
-        options: ["ขออนุญาตเพื่อนก่อนโพสต์เสมอ", "แอบโพสต์แล้วค่อยบอก", "ติดแท็กเพื่อนทุกคน", "ใส่ฟิลเตอร์กวนๆ"],
-        answer: 0,
-        explain: "การเคารพสิทธิและความเป็นส่วนตัว (Privacy) ของผู้อื่นเป็นพื้นฐานสำคัญของพลเมืองดิจิทัล"
+    /* ================= SYSTEM STATE ================= */
+    let numPlayers = 1;
+    let players = [];
+    let currentPlayerIndex = 0;
+    let currentQuestion = null;
+    let soundEnabled = true;
+    let audioCtx = null;
+    let inBossBattle = false;
+    let currentBoss = null;
+    let bossCurrentHP = 0;
+
+    /* ================= INIT & UTILS ================= */
+    function setPlayers(num) {
+        numPlayers = num;
+        for(let i=1; i<=4; i++) {
+            document.getElementById(`btn-p${i}`).style.background = i === num ? "var(--neon-blue)" : "transparent";
+            document.getElementById(`btn-p${i}`).style.color = i === num ? "#000" : "var(--neon-blue)";
+        }
     }
-];
 
-/* ==========================================================================
-   GAME STATE & PLAYER SAVING
-   ========================================================================== */
-
-let player = {
-    level: 1,
-    exp: 0,
-    maxExp: 1000,
-    hp: 500,
-    maxHp: 500,
-    atk: 100,
-    def: 50,
-    score: 0,
-    coin: 0,
-    unlockedBossId: 1,
-    inventory: ["🎁 Digital Shield (เกราะป้องกันไซเบอร์)"],
-    achievements: []
-};
-
-let currentBoss = null;
-let currentBossHp = 0;
-let currentPhase = 1;
-let currentCombo = 0;
-let currentQuestion = null;
-
-// Initialize & Load Save Data
-function loadGameData() {
-    const saved = localStorage.getItem("digital_citizen_rpg_save");
-    if (saved) {
-        try {
-            player = JSON.parse(saved);
-        } catch(e) { console.error(e); }
-    }
-    updateHeaderUI();
-}
-
-function saveGameData() {
-    localStorage.setItem("digital_citizen_rpg_save", JSON.stringify(player));
-    updateHeaderUI();
-}
-
-function resetSaveData() {
-    if (confirm("คุณต้องการรีเซ็ตข้อมูลเกมทั้งหมดใช่หรือไม่?")) {
-        localStorage.removeItem("digital_citizen_rpg_save");
-        location.reload();
-    }
-}
-
-function updateHeaderUI() {
-    document.getElementById("header-lvl").innerText = `Lv. ${player.level}`;
-    document.getElementById("header-coin").innerText = `🪙 ${player.coin}`;
-    document.getElementById("header-score").innerText = `🏆 ${player.score}`;
-}
-
-/* ==========================================================================
-   SCREEN & NAVIGATION
-   ========================================================================== */
-
-function showScreen(screenId) {
-    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-    const target = document.getElementById(`screen-${screenId}`);
-    if (target) target.classList.add("active");
-
-    if (screenId === "boss-room") renderBossRoom();
-}
-
-/* ==========================================================================
-   BOSS ROOM SYSTEM
-   ========================================================================== */
-
-function renderBossRoom() {
-    const container = document.getElementById("boss-list-container");
-    container.innerHTML = "";
-
-    BOSS_DATABASE.forEach(boss => {
-        const isLocked = boss.id > player.unlockedBossId;
-        const card = document.createElement("div");
-        card.className = `boss-card ${isLocked ? "locked" : ""}`;
+    function initGame() {
+        players = [];
+        for(let i=0; i<numPlayers; i++) {
+            players.push({
+                id: i,
+                name: `PLAYER ${i+1}`,
+                hp: 100,
+                balance: 55, // 40-70 is safe
+                knowledge: 0,
+                score: 0,
+                pos: 0,
+                cards: []
+            });
+        }
+        currentPlayerIndex = 0;
+        inBossBattle = false;
         
-        card.innerHTML = `
-            <div style="font-size: 12px; font-weight: bold; color: var(--accent-gold);">BOSS 0${boss.id}</div>
-            <div class="boss-avatar">${boss.icon}</div>
-            <h3 style="margin-bottom: 4px;">${boss.name}</h3>
-            <div style="font-size: 12px; color: #8a99ad; margin-bottom: 12px;">Level ${boss.level} | HP ${boss.hp}</div>
-            <div style="font-size: 12px; text-align: center; margin-bottom: 16px;">${boss.desc}</div>
-            <div style="font-size: 11px; color: var(--accent-green); margin-bottom: 12px;">รางวัล: +${boss.expReward} EXP | +${boss.coinReward} Coin</div>
-            <button class="btn ${isLocked ? "btn-disabled" : "btn-danger"}" 
-                style="width: 100%;" 
-                ${isLocked ? "disabled" : ""} 
-                onclick="startBossBattle(${boss.id})">
-                ${isLocked ? "🔒 LOCKED" : "⚔️ FIGHT"}
-            </button>
-        `;
-        container.appendChild(card);
-    });
-}
-
-/* ==========================================================================
-   BATTLE SYSTEM & LOGIC
-   ========================================================================== */
-
-function startBossBattle(bossId) {
-    currentBoss = BOSS_DATABASE.find(b => b.id === bossId);
-    currentBossHp = currentBoss.hp;
-    currentPhase = 1;
-    currentCombo = 0;
-    player.hp = player.maxHp;
-
-    // Render Combatants
-    document.getElementById("boss-avatar").innerText = currentBoss.icon;
-    document.getElementById("boss-name").innerText = currentBoss.name;
-    document.getElementById("boss-lvl-display").innerText = `Lv. ${currentBoss.level}`;
-    document.getElementById("player-lvl-display").innerText = `Lv. ${player.level}`;
-
-    updateBattleBars();
-    showScreen("battle");
-    nextQuestion();
-}
-
-function updateBattleBars() {
-    // Player Bars
-    const pHealthPct = Math.max(0, (player.hp / player.maxHp) * 100);
-    document.getElementById("player-hp-bar").style.width = `${pHealthPct}%`;
-    document.getElementById("player-hp-text").innerText = `${Math.ceil(player.hp)}/${player.maxHp} HP`;
-
-    // Boss Bars & Phase
-    const bHealthPct = Math.max(0, (currentBossHp / currentBoss.hp) * 100);
-    document.getElementById("boss-hp-bar").style.width = `${bHealthPct}%`;
-    document.getElementById("boss-hp-text").innerText = `${Math.ceil(currentBossHp)}/${currentBoss.hp} HP`;
-
-    // Phase Calculation
-    if (bHealthPct > 70) currentPhase = 1;
-    else if (bHealthPct > 40) currentPhase = 2;
-    else currentPhase = 3;
-
-    const phaseText = currentPhase === 1 ? "PHASE 1 (Normal)" : currentPhase === 2 ? "PHASE 2 (🔥 RAGE MODE)" : "PHASE 3 (⚡ FINAL RAGE)";
-    document.getElementById("battle-phase-indicator").innerText = phaseText;
-
-    // Combo UI
-    const comboBadge = document.getElementById("combo-display");
-    if (currentCombo > 0) {
-        comboBadge.style.display = "block";
-        comboBadge.innerText = `x${currentCombo} COMBO`;
-    } else {
-        comboBadge.style.display = "none";
+        showScreen('game-screen');
+        generateBoard();
+        updateDashboard();
+        playTone(440, "sine", 0.1);
+        playTone(660, "sine", 0.2, 0.1);
     }
-}
 
-function nextQuestion() {
-    // Pick Random Question
-    const randIndex = Math.floor(Math.random() * QUESTION_DATABASE.length);
-    currentQuestion = QUESTION_DATABASE[randIndex];
+    function showScreen(id) {
+        document.querySelectorAll('.screen, #game-screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
 
-    document.getElementById("quiz-category").innerText = currentQuestion.cat;
-    document.getElementById("quiz-question").innerText = currentQuestion.q;
+    /* ================= AUDIO ================= */
+    function initAudio() {
+        if(!audioCtx && soundEnabled) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        if(soundEnabled) initAudio();
+    }
+    function playTone(freq, type, duration, delay=0) {
+        if(!soundEnabled) return;
+        initAudio();
+        setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }, delay * 1000);
+    }
 
-    const answersContainer = document.getElementById("answers-container");
-    answersContainer.innerHTML = "";
+    /* ================= BOARD & MOVEMENT ================= */
+    function generateBoard() {
+        const container = document.getElementById('board');
+        container.innerHTML = '';
+        NODE_TYPES.forEach((type, index) => {
+            let n = document.createElement('div');
+            n.className = 'node' + (type.includes('BOSS') ? ' boss-node' : '');
+            n.id = 'node-' + index;
+            n.innerText = type;
+            container.appendChild(n);
+        });
+        renderTokens();
+    }
 
-    currentQuestion.options.forEach((opt, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "answer-btn";
-        btn.innerText = `${String.fromCharCode(65 + idx)}. ${opt}`;
-        btn.onclick = () => handleAnswer(idx);
-        answersContainer.appendChild(btn);
-    });
-}
+    function renderTokens() {
+        // Remove existing
+        document.querySelectorAll('.player-token').forEach(el => el.remove());
+        
+        players.forEach(p => {
+            let node = document.getElementById('node-' + p.pos);
+            if(node) {
+                let token = document.createElement('div');
+                token.className = 'player-token';
+                token.innerText = p.id + 1;
+                // Offset slightly if multiple players
+                token.style.transform = `translate(${p.id * 10}px, ${p.id * -5}px)`;
+                node.appendChild(token);
+            }
+        });
+    }
 
-function handleAnswer(selectedIndex) {
-    if (selectedIndex === currentQuestion.answer) {
-        // --- CORRECT ATTACK ---
-        currentCombo++;
-        let comboMult = 1.0;
-        if (currentCombo >= 10) comboMult = 2.0;
-        else if (currentCombo >= 5) comboMult = 1.5;
-        else if (currentCombo >= 3) comboMult = 1.2;
-        else if (currentCombo >= 2) comboMult = 1.1;
+    function rollDice() {
+        if(inBossBattle) return;
+        let btn = document.getElementById('btn-roll');
+        btn.disabled = true;
+        let resEl = document.getElementById('dice-result');
+        
+        let counter = 0;
+        let finalRoll = 0;
+        playTone(300, "square", 0.05);
+        
+        let rollInterval = setInterval(() => {
+            finalRoll = Math.floor(Math.random() * 6) + 1;
+            resEl.innerText = finalRoll;
+            counter++;
+            if(counter > 10) {
+                clearInterval(rollInterval);
+                playTone(800, "sine", 0.2);
+                setTimeout(() => movePlayer(finalRoll), 500);
+            }
+        }, 50);
+    }
 
-        let damage = Math.round(player.atk * comboMult);
-        if (currentCombo >= 10) {
-            spawnDamagePop("⚡ DIGITAL STRIKE! -" + damage, "boss-avatar");
+    function movePlayer(steps) {
+        let p = players[currentPlayerIndex];
+        let start = p.pos;
+        let end = Math.min(start + steps, BOARD_SPACES - 1);
+        
+        let currentStep = start;
+        let moveInt = setInterval(() => {
+            if(currentStep < end) {
+                currentStep++;
+                p.pos = currentStep;
+                renderTokens();
+                playTone(400, "triangle", 0.05);
+            } else {
+                clearInterval(moveInt);
+                checkBalancePenalty(p);
+                triggerNodeEvent(NODE_TYPES[p.pos]);
+            }
+        }, 300);
+    }
+
+    /* ================= GAME MECHANICS ================= */
+    function checkBalancePenalty(p) {
+        if(p.balance < 40 || p.balance > 70) {
+            p.hp -= 5;
+            showFloatingText("Unbalanced! -5 HP", "var(--neon-red)");
+        }
+    }
+
+    function triggerNodeEvent(type) {
+        if(type === "START") {
+            endTurn();
+        } else if (type === "CRISIS" || type === "PANCREAS" || type === "THYROID" || type === "ADRENAL" || type === "PINEAL") {
+            openQuiz();
+        } else if (type === "RANDOM") {
+            triggerRandomEvent();
+        } else if (type.includes("BOSS")) {
+            startBossBattle(type === "FINAL BOSS" ? 4 : Math.floor(players[currentPlayerIndex].pos / 7));
+        }
+    }
+
+    function endTurn() {
+        updateDashboard();
+        checkGameOver();
+        if(inBossBattle) return; // Wait for boss logic
+        
+        currentPlayerIndex = (currentPlayerIndex + 1) % numPlayers;
+        document.getElementById('turn-indicator').innerText = `TURN: ${players[currentPlayerIndex].name}`;
+        document.getElementById('btn-roll').disabled = false;
+        document.getElementById('dice-result').innerText = "-";
+        updateDashboard();
+    }
+
+    function updateDashboard() {
+        let p = players[currentPlayerIndex];
+        document.getElementById('player-name').innerText = p.name;
+        document.getElementById('stat-hp').innerText = `${Math.max(0, p.hp)}/100`;
+        document.getElementById('bar-hp').style.width = `${Math.max(0, p.hp)}%`;
+        
+        document.getElementById('stat-bal').innerText = `${p.balance}/100`;
+        document.getElementById('bar-bal').style.width = `${p.balance}%`;
+        
+        let balStatus = document.getElementById('bal-status');
+        if(p.balance < 40) { balStatus.innerText = "DEFICIENCY!"; balStatus.style.color = "var(--neon-yellow)"; }
+        else if(p.balance > 70) { balStatus.innerText = "OVERLOAD!"; balStatus.style.color = "var(--neon-red)"; }
+        else { balStatus.innerText = "BALANCED"; balStatus.style.color = "var(--neon-green)"; }
+        
+        document.getElementById('stat-kno').innerText = p.knowledge;
+        document.getElementById('stat-sco').innerText = p.score;
+
+        renderCards();
+    }
+
+    /* ================= QUIZ / CRISIS ================= */
+    function openQuiz(forcedQ = null) {
+        let qIndex = forcedQ !== null ? forcedQ : Math.floor(Math.random() * GAME_DATA.questions.length);
+        currentQuestion = GAME_DATA.questions[qIndex];
+        
+        document.getElementById('crisis-title').innerText = forcedQ !== null ? "BOSS ATTACK" : "⚠️ HORMONE CRISIS";
+        document.getElementById('crisis-desc').innerText = currentQuestion.q;
+        document.getElementById('hint-text').style.display = 'none';
+        document.getElementById('hint-text').innerText = `Hint: ${currentQuestion.exp.substring(0, 20)}...`;
+        
+        let cDiv = document.getElementById('crisis-choices');
+        cDiv.innerHTML = '';
+        currentQuestion.c.forEach((choice, i) => {
+            let b = document.createElement('button');
+            b.className = 'choice-btn';
+            b.innerText = choice;
+            b.onclick = () => answerQuiz(i);
+            cDiv.appendChild(b);
+        });
+        
+        document.getElementById('crisis-modal').style.display = 'flex';
+    }
+
+    function useHint() {
+        let p = players[currentPlayerIndex];
+        if(p.score >= 3) {
+            p.score -= 3;
+            document.getElementById('hint-text').style.display = 'block';
+            updateDashboard();
+        }
+    }
+
+    function answerQuiz(choiceIdx) {
+        document.getElementById('crisis-modal').style.display = 'none';
+        let p = players[currentPlayerIndex];
+        let correct = (choiceIdx === currentQuestion.a);
+        
+        let title, desc, effect;
+        if(correct) {
+            playTone(800, "sine", 0.1);
+            playTone(1200, "sine", 0.2, 0.1);
+            title = "✓ CORRECT!";
+            desc = currentQuestion.exp;
+            
+            if(inBossBattle) {
+                effect = "Boss HP -20! Knowledge +1";
+                bossCurrentHP -= 20;
+                p.knowledge += 1;
+                p.score += 20;
+                updateBossUI();
+            } else {
+                effect = "+10 Score, Balance +5 toward center";
+                p.score += 10;
+                p.knowledge += 1;
+                // Move balance towards 55
+                if(p.balance < 55) p.balance += 5; else if (p.balance > 55) p.balance -= 5;
+            }
         } else {
-            spawnDamagePop(`💥 -${damage} HP`, "boss-avatar");
+            playTone(200, "sawtooth", 0.3);
+            title = "✗ INCORRECT!";
+            desc = `The correct answer was: ${currentQuestion.c[currentQuestion.a]}\n${currentQuestion.exp}`;
+            
+            if(inBossBattle) {
+                effect = "Player HP -15!";
+                p.hp -= 15;
+            } else {
+                effect = "HP -10, Balance fluctuates";
+                p.hp -= 10;
+                p.balance += (Math.random() > 0.5 ? 10 : -10);
+            }
         }
-
-        currentBossHp -= damage;
-        player.score += 100 * currentCombo;
-        addExp(50);
-
-        if (currentBossHp <= 0) {
-            currentBossHp = 0;
-            updateBattleBars();
-            setTimeout(handleVictory, 600);
-            return;
-        }
-    } else {
-        // --- WRONG / BOSS ATTACK ---
-        currentCombo = 0;
-        let bossAtk = currentBoss.atk * (1 + (currentPhase - 1) * 0.3);
-        let damageTaken = Math.max(10, Math.round(bossAtk - player.def * 0.3));
-
-        spawnDamagePop(`💥 -${damageTaken} HP`, "player-avatar");
-        player.hp -= damageTaken;
-
-        openInfoModal("❌ WRONG!", `ตอบไม่ถูกต้อง!\n\n💡 คำอธิบาย: ${currentQuestion.explain}`);
-
-        if (player.hp <= 0) {
-            player.hp = 0;
-            updateBattleBars();
-            setTimeout(handleDefeat, 600);
-            return;
-        }
-    }
-
-    updateBattleBars();
-    nextQuestion();
-}
-
-function spawnDamagePop(text, targetId) {
-    const targetEl = document.getElementById(targetId);
-    const rect = targetEl.getBoundingClientRect();
-    
-    const pop = document.createElement("div");
-    pop.className = "damage-pop";
-    pop.innerText = text;
-    pop.style.left = `${rect.left + rect.width / 2 - 40}px`;
-    pop.style.top = `${rect.top}px`;
-
-    document.body.appendChild(pop);
-    setTimeout(() => pop.remove(), 800);
-}
-
-function surrenderBattle() {
-    if (confirm("คุณต้องการยอมแพ้และออกจากห้องต่อสู้หรือไม่?")) {
-        showScreen("boss-room");
-    }
-}
-
-/* ==========================================================================
-   LEVELING & REWARDS
-   ========================================================================== */
-
-function addExp(amount) {
-    player.exp += amount;
-    if (player.exp >= player.maxExp) {
-        player.level++;
-        player.exp -= player.maxExp;
-        player.maxExp = Math.round(player.maxExp * 1.5);
-        player.maxHp += 100;
-        player.atk += 25;
-        player.def += 15;
-        player.hp = player.maxHp;
         
-        spawnDamagePop("✨ LEVEL UP!", "player-avatar");
-    }
-    saveGameData();
-}
-
-function handleVictory() {
-    player.score += 1000;
-    player.coin += currentBoss.coinReward;
-    addExp(currentBoss.expReward);
-
-    // Unlock Next Boss
-    if (currentBoss.id === player.unlockedBossId && player.unlockedBossId < BOSS_DATABASE.length) {
-        player.unlockedBossId++;
+        showResult(title, desc, effect, correct);
     }
 
-    saveGameData();
+    /* ================= RANDOM EVENTS ================= */
+    function triggerRandomEvent() {
+        let events = [
+            { text: "Drank 2 liters of water. ADH drops.", bal: +10 },
+            { text: "Missed sleep. Melatonin irregular. Stress up.", hp: -5, bal: -10 },
+            { text: "Ate healthy meal. Insulin steady.", hp: +10, bal: (players[currentPlayerIndex].balance < 55 ? 5 : -5) },
+            { text: "Panic attack! Adrenaline surge.", bal: +15, hp: -5 }
+        ];
+        let e = events[Math.floor(Math.random()*events.length)];
+        let p = players[currentPlayerIndex];
+        p.hp += (e.hp || 0);
+        p.balance += e.bal;
+        showResult("RANDOM EVENT", e.text, `HP ${e.hp||0}, Balance ${e.bal}`, true);
+    }
 
-    const titleEl = document.getElementById("result-title");
-    titleEl.innerText = "🏆 VICTORY!";
-    titleEl.style.color = "var(--accent-gold)";
+    /* ================= BOSS BATTLE ================= */
+    function startBossBattle(bIdx) {
+        if(bIdx >= GAME_DATA.bosses.length) bIdx = GAME_DATA.bosses.length - 1;
+        currentBoss = GAME_DATA.bosses[bIdx];
+        bossCurrentHP = currentBoss.hp;
+        inBossBattle = true;
+        
+        document.getElementById('boss-ui').style.display = 'block';
+        document.getElementById('boss-name').innerText = `BOSS: ${currentBoss.name}`;
+        document.getElementById('boss-desc').innerText = currentBoss.desc;
+        updateBossUI();
+        
+        playTone(150, "square", 0.5);
+        playTone(100, "square", 1.0, 0.5);
+        
+        showResult(`BOSS ENCOUNTER: ${currentBoss.name}`, "Prepare to answer critical questions or use cards to defeat the boss!", "FIGHT!", false);
+    }
 
-    document.getElementById("result-stats").innerHTML = `
-        คุณสามารถกำจัด <b>${currentBoss.name}</b> ได้สำเร็จ!<br><br>
-        🎁 <b>รางวัลที่ได้รับ:</b><br>
-        +${currentBoss.expReward} EXP<br>
-        +${currentBoss.coinReward} Coin<br>
-        ปลดล็อก Boss ถัดไปแล้ว!
-    `;
+    function updateBossUI() {
+        document.getElementById('boss-hp-text').innerText = `${Math.max(0, bossCurrentHP)}/${currentBoss.hp}`;
+        document.getElementById('boss-hp-bar').style.width = `${Math.max(0, (bossCurrentHP/currentBoss.hp)*100)}%`;
+        
+        if(bossCurrentHP <= 0) {
+            inBossBattle = false;
+            document.getElementById('boss-ui').style.display = 'none';
+            players[currentPlayerIndex].score += 100;
+            if(currentBoss.name === "ENDOCRINE CHAOS") {
+                triggerVictory();
+            } else {
+                showResult("BOSS DEFEATED!", "Hormones stabilized for now.", "+100 Score!", true);
+            }
+        }
+    }
 
-    openModal("modal-result");
-}
+    /* ================= MODAL CONTROL ================= */
+    function showResult(title, desc, effect, isPositive) {
+        document.getElementById('result-title').innerText = title;
+        document.getElementById('result-title').style.color = isPositive ? "var(--neon-green)" : "var(--neon-red)";
+        document.getElementById('result-desc').innerText = desc;
+        document.getElementById('result-effect').innerText = effect;
+        document.getElementById('result-modal').style.display = 'flex';
+    }
 
-function handleDefeat() {
-    const titleEl = document.getElementById("result-title");
-    titleEl.innerText = "💀 DEFEATED";
-    titleEl.style.color = "var(--accent-red)";
+    function closeResult() {
+        document.getElementById('result-modal').style.display = 'none';
+        updateDashboard();
+        
+        if(checkGameOver()) return;
 
-    document.getElementById("result-stats").innerHTML = `
-        คุณพ่ายแพ้ให้กับ <b>${currentBoss.name}</b><br>
-        พยายามศึกษาความรู้เรื่องพลเมืองดิจิทัลแล้วลองใหม่อีกครั้ง!
-    `;
+        if(inBossBattle && bossCurrentHP > 0) {
+            // Boss attacks next
+            setTimeout(() => {
+                let randomQ = currentBoss.q_indices[Math.floor(Math.random() * currentBoss.q_indices.length)];
+                openQuiz(randomQ);
+            }, 500);
+        } else if (!inBossBattle) {
+            endTurn();
+        }
+    }
 
-    openModal("modal-result");
-}
+    /* ================= CARDS & QR ================= */
+    function simulateQR() {
+        document.getElementById('qr-modal').style.display = 'flex';
+        document.getElementById('qr-result').style.display = 'none';
+        document.getElementById('btn-qr-close').style.display = 'none';
+        playTone(1000, "sine", 1.5); // fake scan sound
+        
+        setTimeout(() => {
+            let h = GAME_DATA.hormones[Math.floor(Math.random() * GAME_DATA.hormones.length)];
+            document.getElementById('qr-result').innerHTML = `IDENTIFIED: <br/>${h.name} <br/><span style="font-size:1rem;color:#aaa">${h.gland}</span>`;
+            document.getElementById('qr-result').style.display = 'block';
+            document.getElementById('btn-qr-close').style.display = 'inline-block';
+            
+            // Give to player
+            players[currentPlayerIndex].cards.push(h);
+        }, 2000);
+    }
 
-/* ==========================================================================
-   MODALS & HELPERS
-   ========================================================================== */
+    function closeQR() {
+        document.getElementById('qr-modal').style.display = 'none';
+        updateDashboard();
+    }
 
-function openModal(id) {
-    document.getElementById(id).style.display = "flex";
-}
+    function renderCards() {
+        let hand = document.getElementById('card-hand');
+        hand.innerHTML = '';
+        players[currentPlayerIndex].cards.forEach((c, idx) => {
+            let cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.innerHTML = `<span class="type">HORMONE</span><strong>${c.name}</strong><br/><small>${c.gland}</small>`;
+            cardDiv.onclick = () => useCard(idx);
+            hand.appendChild(cardDiv);
+        });
+    }
 
-function closeModal(id) {
-    document.getElementById(id).style.display = "none";
-}
+    function useCard(idx) {
+        if(!inBossBattle) {
+            showFloatingText("Can only use in Boss Battle!", "var(--neon-yellow)");
+            return;
+        }
+        let card = players[currentPlayerIndex].cards[idx];
+        
+        // Simple logic: if card name or gland is related to boss weakness, massive damage
+        let damage = 10;
+        let msg = "Used " + card.name;
+        
+        if(currentBoss.weakness.includes(card.name) || currentBoss.desc.includes(card.gland)) {
+            damage = 40;
+            msg = "COMBO! " + card.name + " hits Boss Weakness!";
+            playTone(800, "square", 0.1); playTone(1200, "square", 0.2, 0.1);
+        } else {
+            playTone(400, "triangle", 0.2);
+        }
+        
+        bossCurrentHP -= damage;
+        players[currentPlayerIndex].cards.splice(idx, 1);
+        showFloatingText(msg, "var(--neon-blue)");
+        updateBossUI();
+        renderCards();
+    }
 
-function openInfoModal(title, bodyText) {
-    document.getElementById("modal-title").innerText = title;
-    document.getElementById("modal-body").innerText = bodyText;
-    openModal("modal-info");
-}
+    /* ================= ENDGAME ================= */
+    function checkGameOver() {
+        let p = players[currentPlayerIndex];
+        if(p.hp <= 0 || p.balance <= 0 || p.balance >= 100) {
+            document.getElementById('end-title').innerText = "GAME OVER";
+            document.getElementById('end-title').style.color = "var(--neon-red)";
+            document.getElementById('end-reason').innerText = "Hormonal Balance Collapsed or HP Reached 0.";
+            showStatsEnd(p);
+            return true;
+        }
+        return false;
+    }
 
-function getCharacterSummary() {
-    return `🧙 PLAYER STATS\n\nLevel: ${player.level}\nHP: ${player.hp}/${player.maxHp}\nATK: ${player.atk}\nDEF: ${player.def}\nEXP: ${player.exp}/${player.maxExp}`;
-}
+    function triggerVictory() {
+        let p = players[currentPlayerIndex];
+        document.getElementById('end-title').innerText = "SYSTEM RESTORED";
+        document.getElementById('end-title').style.color = "var(--neon-green)";
+        document.getElementById('end-reason').innerText = "Congratulations! You have restored Endocrine Balance.";
+        showStatsEnd(p);
+    }
 
-function getInventorySummary() {
-    return player.inventory.length > 0 ? player.inventory.join("\n") : "ไม่มีไอเทมในกระเป๋า";
-}
+    function showStatsEnd(p) {
+        document.getElementById('end-score').innerText = p.score;
+        document.getElementById('end-kno').innerText = p.knowledge;
+        
+        let rank = "Novice";
+        if(p.score > 100) rank = "Hormone Trainee";
+        if(p.score > 300) rank = "Endocrine Expert";
+        if(p.score > 500) rank = "ENDOCRINE MASTER";
+        
+        document.getElementById('end-rank').innerText = rank;
+        document.getElementById('end-modal').style.display = 'flex';
+    }
 
-function getAchievementSummary() {
-    let unlockedCount = player.unlockedBossId - 1;
-    return `🏆 ACHIEVEMENTS\n\n- ปลดล็อก Boss: ${unlockedCount}/${BOSS_DATABASE.length}\n- คะแนนรวม: ${player.score}`;
-}
+    function endGame(type) {
+        if(type === 'abort' && confirm("Abort current mission?")) location.reload();
+    }
 
-// START GAME ON LOAD
-window.onload = () => {
-    loadGameData();
-};
+    /* ================= UTILS ================= */
+    function renderDatabase() {
+        let db = document.getElementById('db-content');
+        db.innerHTML = '';
+        GAME_DATA.hormones.forEach(h => {
+            db.innerHTML += `
+                <div class="db-item">
+                    <h4>${h.name}</h4>
+                    <small style="color:var(--neon-blue)">Gland:</small> ${h.gland}<br/>
+                    <small style="color:var(--neon-blue)">Target:</small> ${h.target}<br/>
+                    <small style="color:var(--neon-blue)">Function:</small> ${h.func}<br/>
+                    <hr style="border:0; border-top: 1px solid #333; margin: 5px 0;">
+                    <small style="color:var(--neon-red)">Low:</small> ${h.low}<br/>
+                    <small style="color:var(--neon-red)">High:</small> ${h.high}
+                </div>
+            `;
+        });
+    }
+
+    function showFloatingText(text, color) {
+        let f = document.createElement('div');
+        f.innerText = text;
+        f.style.position = 'fixed';
+        f.style.top = '50%';
+        f.style.left = '50%';
+        f.style.transform = 'translate(-50%, -50%)';
+        f.style.color = color;
+        f.style.fontSize = '2rem';
+        f.style.fontWeight = 'bold';
+        f.style.textShadow = `0 0 10px ${color}`;
+        f.style.zIndex = '999';
+        f.style.pointerEvents = 'none';
+        f.style.animation = 'scan 1.5s ease-out';
+        document.body.appendChild(f);
+        setTimeout(() => f.remove(), 1500);
+    }
 </script>
 </body>
 </html>
