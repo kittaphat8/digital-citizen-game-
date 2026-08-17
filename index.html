@@ -6,6 +6,7 @@
     <title>ENDOCRINE: HORMONE BALANCE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap');
 
         :root {
             --bg-color: #050b14;
@@ -15,7 +16,7 @@
             --neon-yellow: #ffea00;
             --glass-bg: rgba(10, 25, 45, 0.7);
             --glass-border: rgba(0, 229, 255, 0.3);
-            font-family: 'Rajdhani', sans-serif;
+            font-family: 'Rajdhani', 'Sarabun', sans-serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -56,7 +57,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 100; }
         .modal { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; box-shadow: 0 0 30px rgba(0,229,255,0.2); text-align: center; }
         .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .choice-btn { background: rgba(0,229,255,0.1); border: 1px solid var(--neon-blue); color: #fff; padding: 15px; cursor: pointer; transition: 0.2s; border-radius: 5px; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem;}
+        .choice-btn { background: rgba(0,229,255,0.1); border: 1px solid var(--neon-blue); color: #fff; padding: 15px; cursor: pointer; transition: 0.2s; border-radius: 5px; font-family: 'Sarabun', sans-serif; font-size: 1.1rem;}
         .choice-btn:hover { background: var(--neon-blue); color: #000; }
         
         /* Cards & Bottom Bar */
@@ -87,7 +88,7 @@
     <!-- Main Menu -->
     <div id="main-menu" class="screen active">
         <h1 class="anim-pulse" style="font-size: 3.5rem; color: var(--neon-blue); text-align: center;">ENDOCRINE<br><span style="color: #fff;">HORMONE BALANCE</span></h1>
-        <p style="margin: 20px 0; font-size: 1.2rem; letter-spacing: 2px;">"Control the Hormones. Restore the Balance."</p>
+        <p style="margin: 20px 0; font-size: 1.2rem; letter-spacing: 2px; font-family: 'Orbitron', sans-serif;">"Control the Hormones. Restore the Balance."</p>
         <button class="btn" onclick="showScreen('setup-screen')">START GAME</button>
         <button class="btn" onclick="showScreen('database-screen'); renderDatabase();">HORMONE DATABASE</button>
         <button class="btn" onclick="document.getElementById('tutorial-modal').style.display='flex'">HOW TO PLAY</button>
@@ -152,10 +153,10 @@
 
         <!-- Main Board Area -->
         <div class="main-area">
-            <!-- Boss UI (Hidden by default) -->
+            <!-- Boss UI -->
             <div id="boss-ui">
                 <h2 id="boss-name" style="color: var(--neon-red);">BOSS BATTLE</h2>
-                <p id="boss-desc" style="margin: 10px 0;"></p>
+                <p id="boss-desc" style="margin: 10px 0; font-family: 'Sarabun', sans-serif;"></p>
                 <div class="stat-label"><span>BOSS HP</span><span id="boss-hp-text">100/100</span></div>
                 <div class="progress-bar" style="height: 20px;"><div id="boss-hp-bar" class="progress-fill" style="width: 100%; background: var(--neon-red);"></div></div>
             </div>
@@ -181,16 +182,15 @@
         </div>
     </div>
 
-    <!-- Modals -->
     <!-- Crisis Modal -->
     <div id="crisis-modal" class="modal-overlay">
         <div class="modal">
             <h2 id="crisis-title" style="color: var(--neon-yellow);">⚠️ HORMONE CRISIS</h2>
-            <p id="crisis-desc" style="margin: 20px 0; font-size: 1.2rem;"></p>
+            <p id="crisis-desc" style="margin: 20px 0; font-size: 1.2rem; font-family: 'Sarabun', sans-serif;"></p>
             <div class="choices" id="crisis-choices"></div>
             <div style="margin-top: 20px; display: flex; justify-content: space-between;">
                 <button class="btn" onclick="useHint()" id="btn-hint">HINT (-3 Score)</button>
-                <p id="hint-text" style="color: var(--neon-blue); display: none; font-size: 0.9rem; align-self: center;"></p>
+                <p id="hint-text" style="color: var(--neon-blue); display: none; font-size: 0.9rem; align-self: center; font-family: 'Sarabun', sans-serif;"></p>
             </div>
         </div>
     </div>
@@ -199,7 +199,7 @@
     <div id="result-modal" class="modal-overlay">
         <div class="modal">
             <h2 id="result-title"></h2>
-            <p id="result-desc" style="margin: 20px 0; font-size: 1.1rem;"></p>
+            <p id="result-desc" style="margin: 20px 0; font-size: 1.1rem; font-family: 'Sarabun', sans-serif;"></p>
             <p id="result-effect" style="color: var(--neon-yellow); font-weight: bold; margin-bottom: 20px;"></p>
             <button class="btn" onclick="closeResult()">CONTINUE</button>
         </div>
@@ -210,7 +210,7 @@
         <div class="modal" style="position: relative; overflow: hidden; height: 300px; display: flex; flex-direction: column; justify-content: center;">
             <div class="scanner-line"></div>
             <h2 class="anim-pulse" style="color: var(--neon-green);">SCANNING...</h2>
-            <p id="qr-result" style="margin-top: 20px; font-size: 1.5rem; display: none; color: var(--neon-yellow);"></p>
+            <p id="qr-result" style="margin-top: 20px; font-size: 1.5rem; display: none; color: var(--neon-yellow); font-family: 'Orbitron', sans-serif;"></p>
             <button class="btn" id="btn-qr-close" onclick="closeQR()" style="display: none; margin-top: 20px;">COLLECT CARD</button>
         </div>
     </div>
@@ -219,7 +219,7 @@
     <div id="end-modal" class="modal-overlay">
         <div class="modal">
             <h1 id="end-title" style="font-size: 3rem;"></h1>
-            <p id="end-reason" style="margin: 10px 0;"></p>
+            <p id="end-reason" style="margin: 10px 0; font-family: 'Sarabun', sans-serif;"></p>
             <div style="text-align: left; background: rgba(0,0,0,0.5); padding: 20px; margin: 20px 0; border-radius: 5px; border: 1px solid var(--neon-blue);">
                 <p>SCORE: <span id="end-score" style="color: var(--neon-yellow);">0</span></p>
                 <p>KNOWLEDGE: <span id="end-kno" style="color: var(--neon-blue);">0</span></p>
@@ -231,8 +231,8 @@
 
     <!-- Tutorial Modal -->
     <div id="tutorial-modal" class="modal-overlay">
-        <div class="modal" style="max-height: 80vh; overflow-y: auto; text-align: left;">
-            <h2 style="color: var(--neon-blue); text-align: center; margin-bottom: 20px;">HOW TO PLAY</h2>
+        <div class="modal" style="max-height: 80vh; overflow-y: auto; text-align: left; font-family: 'Sarabun', sans-serif;">
+            <h2 style="color: var(--neon-blue); text-align: center; margin-bottom: 20px; font-family: 'Orbitron', sans-serif;">HOW TO PLAY</h2>
             <p><strong>Goal:</strong> รักษาสมดุลฮอร์โมน (Balance 40-70) ไม่ให้ HP หมด และเอาชนะ Boss ทั้งหมด!</p>
             <ul style="margin-left: 20px; line-height: 1.6; margin-top: 10px;">
                 <li>ทอยลูกเต๋าเพื่อเดินบนบอร์ด (ร่างกายมนุษย์)</li>
@@ -265,52 +265,57 @@
         ],
         questions: [
             // Glucose (1-5)
-            { q: "Blood glucose level is HIGH after a heavy meal. Which hormone should be released?", c: ["Insulin", "Glucagon", "ADH", "Thyroxine"], a: 0, exp: "Insulin helps cells absorb glucose, lowering blood sugar." },
-            { q: "You are fasting for 12 hours. Blood glucose drops. What does the Pancreas release?", c: ["Insulin", "Glucagon", "Cortisol", "Adrenaline"], a: 1, exp: "Glucagon signals the liver to release stored glucose." },
-            { q: "Which condition is caused by a severe lack of Insulin?", c: ["Diabetes Insipidus", "Goiter", "Diabetes Mellitus", "Acromegaly"], a: 2, exp: "Diabetes Mellitus is characterized by high blood sugar due to lack of insulin." },
-            { q: "Where is Insulin produced?", c: ["Alpha cells (Pancreas)", "Beta cells (Pancreas)", "Adrenal Cortex", "Thyroid"], a: 1, exp: "Beta cells in the Islets of Langerhans produce Insulin." },
-            { q: "If Glucagon is released, what happens to glycogen in the liver?", c: ["Built up", "Broken down into glucose", "Converted to fat", "Excreted in urine"], a: 1, exp: "Glycogenolysis: breakdown of glycogen to glucose." },
+            { q: "ระดับน้ำตาลในเลือดสูงมากหลังมื้ออาหารมื้อใหญ่ ฮอร์โมนใดควรถูกหลั่งออกมาเพื่อจัดการน้ำตาล?", c: ["อินซูลิน (Insulin)", "กลูคากอน (Glucagon)", "ADH", "ไทรอกซิน (Thyroxine)"], a: 0, exp: "อินซูลินช่วยให้เซลล์ดูดซึมกลูโคส ทำให้ระดับน้ำตาลในเลือดลดลง" },
+            { q: "คุณอดอาหารมาแล้ว 12 ชั่วโมง ระดับน้ำตาลในเลือดตก ตับอ่อนจะหลั่งฮอร์โมนใด?", c: ["อินซูลิน (Insulin)", "กลูคากอน (Glucagon)", "คอร์ติซอล (Cortisol)", "อะดรีนาลิน (Adrenaline)"], a: 1, exp: "กลูคากอนส่งสัญญาณให้ตับสลายไกลโคเจนที่สะสมไว้เพื่อเพิ่มน้ำตาลในเลือด" },
+            { q: "ภาวะขาดอินซูลินอย่างรุนแรง ทำให้เกิดโรคใด?", c: ["เบาจืด (Diabetes Insipidus)", "คอพอก (Goiter)", "เบาหวาน (Diabetes Mellitus)", "สัดส่วนร่างกายผิดปกติ (Acromegaly)"], a: 2, exp: "โรคเบาหวานเกิดจากน้ำตาลในเลือดสูงเพราะร่างกายขาดอินซูลินหรือไม่ตอบสนองต่ออินซูลิน" },
+            { q: "อินซูลินถูกสร้างขึ้นที่ใด?", c: ["แอลฟาเซลล์ (ตับอ่อน)", "บีตาเซลล์ (ตับอ่อน)", "ต่อมหมวกไตส่วนนอก", "ต่อมไทรอยด์"], a: 1, exp: "บีตาเซลล์ (Beta cells) ในหมู่เกาะแลงเกอร์ฮันส์ของตับอ่อนทำหน้าที่สร้างอินซูลิน" },
+            { q: "เมื่อกลูคากอนถูกหลั่งออกมา จะเกิดอะไรขึ้นกับไกลโคเจนที่ตับ?", c: ["ถูกสร้างเพิ่มขึ้น", "ถูกสลายกลายเป็นกลูโคส", "ถูกเปลี่ยนเป็นไขมัน", "ถูกขับออกทางปัสสาวะ"], a: 1, exp: "เกิดกระบวนการ Glycogenolysis คือการสลายไกลโคเจนให้กลายเป็นน้ำตาลกลูโคส" },
+            
             // Metabolism & Thyroid (6-10)
-            { q: "Which element is crucial for the synthesis of Thyroxine (T4)?", c: ["Calcium", "Iron", "Iodine", "Sodium"], a: 2, exp: "Lack of iodine prevents T4 synthesis, leading to Goiter." },
-            { q: "Thyroxine levels are low. Due to Negative Feedback, what happens to TSH?", c: ["Decreases", "Increases", "Stops completely", "Turns into TRH"], a: 1, exp: "Low T4 removes inhibition, causing the Pituitary to release more TSH." },
-            { q: "A patient has exophthalmos (bulging eyes), high heart rate, and weight loss. Likely diagnosis?", c: ["Hypothyroidism", "Hyperthyroidism", "Addison's Disease", "Dwarfism"], a: 1, exp: "These are classic signs of overactive thyroid (e.g., Graves' disease)." },
-            { q: "Which gland secretes TRH to stimulate the Pituitary?", c: ["Thymus", "Hypothalamus", "Pineal", "Adrenal"], a: 1, exp: "Hypothalamus acts as the master control, secreting releasing hormones." },
-            { q: "What is the primary function of Thyroxine?", c: ["Lower blood sugar", "Increase basal metabolic rate", "Control sleep", "Stimulate bone growth only"], a: 1, exp: "T4 controls how fast the body uses energy (metabolism)." },
+            { q: "แร่ธาตุใดมีความสำคัญอย่างมากต่อการสร้างฮอร์โมนไทรอกซิน (T4)?", c: ["แคลเซียม", "เหล็ก", "ไอโอดีน", "โซเดียม"], a: 2, exp: "การขาดไอโอดีนทำให้สร้าง T4 ไม่ได้ และนำไปสู่โรคคอพอก" },
+            { q: "ระดับไทรอกซินต่ำเกินไป ตามกลไก Negative Feedback จะเกิดผลอย่างไรกับฮอร์โมน TSH?", c: ["ลดลง", "เพิ่มขึ้น", "หยุดหลั่งโดยสิ้นเชิง", "เปลี่ยนเป็น TRH"], a: 1, exp: "ระดับ T4 ที่ต่ำจะกระตุ้นให้ต่อมใต้สมองหลั่ง TSH ออกมาเพิ่มขึ้นเพื่อสั่งการต่อมไทรอยด์" },
+            { q: "ผู้ป่วยมีอาการตาโปน อัตราการเต้นหัวใจสูง และน้ำหนักลดอย่างรวดเร็ว น่าจะเป็นโรคใด?", c: ["ต่อมไทรอยด์ทำงานต่ำ (Hypothyroidism)", "ต่อมไทรอยด์เป็นพิษ (Hyperthyroidism)", "โรคแอดดิสัน (Addison's Disease)", "คนแคระ (Dwarfism)"], a: 1, exp: "นี่คืออาการคลาสสิกของต่อมไทรอยด์ทำงานมากเกินไป (เช่น Graves' disease)" },
+            { q: "ต่อมใดหลั่งฮอร์โมน TRH เพื่อไปกระตุ้นต่อมใต้สมอง?", c: ["ต่อมไทมัส", "ไฮโปทาลามัส", "ต่อมไพเนียล", "ต่อมหมวกไต"], a: 1, exp: "ไฮโปทาลามัสทำหน้าที่เป็นศูนย์ควบคุมหลัก โดยหลั่ง Releasing hormones" },
+            { q: "หน้าที่หลักของฮอร์โมนไทรอกซิน (Thyroxine) คืออะไร?", c: ["ลดน้ำตาลในเลือด", "เพิ่มอัตราการเผาผลาญพื้นฐาน (BMR)", "ควบคุมการนอนหลับ", "กระตุ้นการเจริญเติบโตของกระดูกเท่านั้น"], a: 1, exp: "T4 ควบคุมความเร็วในการใช้พลังงานหรือระบบเผาผลาญของร่างกาย" },
+            
             // Stress (11-15)
-            { q: "You encounter a wild dog. Heart rate spikes. Which hormone is acting immediately?", c: ["Cortisol", "Adrenaline", "Insulin", "PTH"], a: 1, exp: "Adrenaline (Epinephrine) controls the short-term fight-or-flight response." },
-            { q: "Which part of the adrenal gland produces Adrenaline?", c: ["Adrenal Cortex", "Adrenal Medulla", "Zona fasciculata", "Capsule"], a: 1, exp: "The medulla (inner part) produces adrenaline via nervous system stimulation." },
-            { q: "Which hormone manages long-term stress and alters metabolism to save energy?", c: ["Adrenaline", "Cortisol", "Melatonin", "ADH"], a: 1, exp: "Cortisol (a glucocorticoid) handles chronic stress." },
-            { q: "High continuous levels of Cortisol can lead to which condition?", c: ["Cushing's Syndrome", "Addison's Disease", "Diabetes Insipidus", "Tetany"], a: 0, exp: "Cushing's involves fat redistribution (moon face) and weakened immunity." },
-            { q: "How is Adrenaline secretion triggered?", c: ["Hormonal stimulus", "Humoral stimulus", "Neural stimulus", "Positive feedback"], a: 2, exp: "The sympathetic nervous system directly stimulates the adrenal medulla." },
+            { q: "คุณเจอสุนัขดุวิ่งไล่ หัวใจเต้นแรงทันที ฮอร์โมนใดกำลังทำงาน?", c: ["คอร์ติซอล (Cortisol)", "อะดรีนาลิน (Adrenaline)", "อินซูลิน (Insulin)", "PTH"], a: 1, exp: "อะดรีนาลินควบคุมการตอบสนองระยะสั้นแบบ 'สู้หรือหนี' (Fight-or-flight)" },
+            { q: "ส่วนใดของต่อมหมวกไตที่สร้างฮอร์โมนอะดรีนาลิน?", c: ["ส่วนนอก (Cortex)", "ส่วนใน (Medulla)", "Zona fasciculata", "Capsule"], a: 1, exp: "ต่อมหมวกไตส่วนในสร้างอะดรีนาลินผ่านการกระตุ้นจากระบบประสาท" },
+            { q: "ฮอร์โมนใดจัดการกับความเครียดระยะยาวและปรับเปลี่ยนระบบเผาผลาญเพื่อสงวนพลังงาน?", c: ["อะดรีนาลิน", "คอร์ติซอล", "เมลาโทนิน", "ADH"], a: 1, exp: "คอร์ติซอล (กลุ่ม Glucocorticoid) รับมือกับความเครียดเรื้อรัง" },
+            { q: "ระดับคอร์ติซอลที่สูงอย่างต่อเนื่องอาจทำให้เกิดภาวะใด?", c: ["กลุ่มอาการคูชิง (Cushing's Syndrome)", "โรคแอดดิสัน (Addison's Disease)", "เบาจืด", "กล้ามเนื้อเกร็ง (Tetany)"], a: 0, exp: "กลุ่มอาการคูชิงทำให้ไขมันสะสมผิดที่ (หน้าบานเป็นดวงจันทร์) และภูมิคุ้มกันตก" },
+            { q: "การหลั่งอะดรีนาลินถูกกระตุ้นด้วยวิธีใด?", c: ["กระตุ้นด้วยฮอร์โมน", "กระตุ้นด้วยสารในเลือด", "กระตุ้นด้วยระบบประสาท", "Positive feedback"], a: 2, exp: "ระบบประสาทซิมพาเทติกจะส่งสัญญาณกระตุ้นต่อมหมวกไตส่วนในโดยตรง" },
+            
             // Water & Calcium (16-20)
-            { q: "You are severely dehydrated. Which hormone prevents water loss in urine?", c: ["Aldosterone", "ADH", "Oxytocin", "PTH"], a: 1, exp: "Anti-diuretic Hormone (ADH) forces kidneys to reabsorb water." },
-            { q: "Alcohol inhibits ADH secretion. What is the immediate result?", c: ["Increased urine output", "Decreased urine output", "High blood pressure", "Bone breakdown"], a: 0, exp: "Without ADH, kidneys do not reabsorb water, causing frequent urination." },
-            { q: "Blood calcium drops. Which hormone is released to extract calcium from bones?", c: ["Calcitonin", "PTH", "Thyroxine", "GH"], a: 1, exp: "Parathyroid Hormone (PTH) stimulates osteoclasts to break down bone." },
-            { q: "Calcitonin and PTH have opposite effects. They are called:", c: ["Synergists", "Antagonists", "Agonists", "Tropic hormones"], a: 1, exp: "Antagonistic hormones work against each other to maintain balance." },
-            { q: "Lack of ADH leads to excessive urination and thirst, a condition called:", c: ["Diabetes Mellitus", "Diabetes Insipidus", "Hypercalcemia", "Acromegaly"], a: 1, exp: "Insipidus means 'tasteless' urine, distinguishing it from sugary urine in Mellitus." },
+            { q: "คุณขาดน้ำอย่างรุนแรง ฮอร์โมนใดช่วยป้องกันการสูญเสียน้ำทางปัสสาวะ?", c: ["อัลโดสเตอโรน", "ADH", "ออกซิโทซิน", "PTH"], a: 1, exp: "ฮอร์โมน ADH (Anti-diuretic Hormone) บังคับให้ไตดูดน้ำกลับ" },
+            { q: "แอลกอฮอล์ยับยั้งการหลั่งฮอร์โมน ADH ผลที่ตามมาทันทีคืออะไร?", c: ["ปัสสาวะมากขึ้น", "ปัสสาวะน้อยลง", "ความดันโลหิตสูงขึ้น", "กระดูกถูกทำลาย"], a: 0, exp: "เมื่อไม่มี ADH ไตจะไม่ดูดน้ำกลับ ทำให้ปัสสาวะบ่อยและใส" },
+            { q: "แคลเซียมในเลือดตก ฮอร์โมนใดถูกหลั่งเพื่อดึงแคลเซียมออกจากกระดูก?", c: ["แคลซิโทนิน", "PTH", "ไทรอกซิน", "GH"], a: 1, exp: "พาราไทรอยด์ฮอร์โมน (PTH) กระตุ้นเซลล์สลายกระดูกเพื่อเพิ่มแคลเซียมในเลือด" },
+            { q: "แคลซิโทนินและ PTH มีฤทธิ์ตรงข้ามกัน เราเรียกการทำงานนี้ว่าอะไร?", c: ["Synergists", "Antagonists", "Agonists", "Tropic hormones"], a: 1, exp: "Antagonistic hormones คือฮอร์โมนที่ทำงานต้านกันเพื่อรักษาสมดุล" },
+            { q: "การขาดฮอร์โมน ADH ทำให้ปัสสาวะมากและกระหายน้ำ เรียกว่าโรคอะไร?", c: ["เบาหวาน (Diabetes Mellitus)", "เบาจืด (Diabetes Insipidus)", "Hypercalcemia", "Acromegaly"], a: 1, exp: "Insipidus แปลว่า 'จืดชืด' ใช้แยกความแตกต่างจากปัสสาวะที่หวานในโรคเบาหวาน" },
+            
             // Growth, Sleep, Reproduction (21-25)
-            { q: "Excess Growth Hormone (GH) in adulthood (after growth plates close) causes:", c: ["Gigantism", "Dwarfism", "Acromegaly", "Goiter"], a: 2, exp: "Bones can't lengthen, so they thicken (hands, face, feet)." },
-            { q: "Which hormone regulates the circadian rhythm (sleep-wake cycle)?", c: ["Cortisol", "Melatonin", "Serotonin", "Oxytocin"], a: 1, exp: "Produced by the Pineal gland in response to darkness." },
-            { q: "Which is a classic example of Positive Feedback?", c: ["Blood glucose regulation", "Oxytocin during childbirth", "Thyroid regulation", "Calcium regulation"], a: 1, exp: "Oxytocin increases uterine contractions, which causes more Oxytocin release." },
-            { q: "Which hormone stimulates the development of male secondary sex characteristics?", c: ["Estrogen", "Progesterone", "Testosterone", "FSH"], a: 2, exp: "Testosterone is produced in the testes." },
-            { q: "Where is the Pineal Gland located?", c: ["Neck", "Kidney", "Brain", "Chest"], a: 2, exp: "It is located deep in the center of the brain." },
+            { q: "การมี Growth Hormone (GH) มากเกินไปในวัยผู้ใหญ่ (แผ่นกระดูกปิดแล้ว) จะทำให้เกิดภาวะใด?", c: ["คนยักษ์ (Gigantism)", "คนแคระ (Dwarfism)", "สัดส่วนร่างกายผิดปกติ (Acromegaly)", "คอพอก"], a: 2, exp: "กระดูกไม่สามารถยาวขึ้นได้อีก จึงหนาตัวขึ้นแทน (มือ หน้า และเท้าใหญ่ขึ้น)" },
+            { q: "ฮอร์โมนใดควบคุมนาฬิกาชีวิตและวงจรการนอนหลับ?", c: ["คอร์ติซอล", "เมลาโทนิน", "เซโรโทนิน", "ออกซิโทซิน"], a: 1, exp: "เมลาโทนินผลิตโดยต่อมไพเนียลเมื่อมีการตอบสนองต่อความมืด" },
+            { q: "ข้อใดคือตัวอย่างที่ชัดเจนของกลไก Positive Feedback?", c: ["การควบคุมน้ำตาลในเลือด", "การหลั่งออกซิโทซินตอนคลอดบุตร", "การควบคุมไทรอยด์", "การควบคุมแคลเซียม"], a: 1, exp: "ออกซิโทซินทำให้มดลูกหดตัว ยิ่งหดตัวก็ยิ่งกระตุ้นให้หลั่งออกซิโทซินเพิ่มขึ้น" },
+            { q: "ฮอร์โมนใดกระตุ้นการพัฒนาลักษณะทางเพศขั้นที่สองในเพศชาย?", c: ["เอสโตรเจน", "โปรเจสเตอโรน", "เทสโทสเตอโรน", "FSH"], a: 2, exp: "เทสโทสเตอโรน (Testosterone) ถูกสร้างขึ้นที่อัณฑะ" },
+            { q: "ต่อมไพเนียล (Pineal Gland) ตั้งอยู่ที่ส่วนใดของร่างกาย?", c: ["ลำคอ", "เหนือไต", "สมอง", "หน้าอก"], a: 2, exp: "ต่อมไพเนียลเป็นต่อมเล็กๆ ที่อยู่ลึกเข้าไปบริเวณกึ่งกลางสมอง" },
+            
             // Advanced & Scenarios (26-30)
-            { q: "If the Pituitary gland is removed, which hormone would still be secreted normally?", c: ["TSH", "GH", "Insulin", "ACTH"], a: 2, exp: "Insulin is regulated by blood glucose (humoral), not the pituitary." },
-            { q: "A tumor in the Parathyroid gland causes hypersecretion. What happens?", c: ["Fragile bones", "Dense bones", "Low blood calcium", "Hypoglycemia"], a: 0, exp: "Excess PTH continuously drains calcium from bones." },
-            { q: "Which organ acts as both an endocrine and exocrine gland?", c: ["Thyroid", "Liver", "Pancreas", "Adrenal"], a: 2, exp: "Produces hormones (endocrine) and digestive enzymes (exocrine)." },
-            { q: "Negative feedback means:", c: ["The effect increases the stimulus", "The effect cancels/reduces the stimulus", "The body attacks its own cells", "Hormones are destroyed"], a: 1, exp: "It maintains homeostasis by reversing the direction of change." },
-            { q: "Target cells respond to a specific hormone because they have:", c: ["Specific receptors", "A nucleus", "DNA", "Enzymes"], a: 0, exp: "Hormones only bind to cells with matching receptor shapes." }
+            { q: "หากถูกตัดต่อมใต้สมองทิ้ง ฮอร์โมนใดจะยังคงถูกหลั่งออกมาตามปกติ?", c: ["TSH", "GH", "อินซูลิน", "ACTH"], a: 2, exp: "อินซูลินถูกควบคุมโดยระดับน้ำตาลในเลือดโดยตรง ไม่ได้ถูกสั่งการโดยต่อมใต้สมอง" },
+            { q: "เนื้องอกที่ต่อมพาราไทรอยด์ทำให้มีการหลั่งฮอร์โมนมากเกินไป จะเกิดผลอย่างไร?", c: ["กระดูกเปราะบาง", "กระดูกหนาแน่นขึ้น", "แคลเซียมในเลือดต่ำ", "น้ำตาลในเลือดต่ำ"], a: 0, exp: "PTH ที่มากเกินไปจะคอยดึงแคลเซียมออกจากกระดูกอย่างต่อเนื่อง" },
+            { q: "อวัยวะใดทำหน้าที่เป็นทั้งต่อมไร้ท่อ (Endocrine) และต่อมมีท่อ (Exocrine)?", c: ["ต่อมไทรอยด์", "ตับ", "ตับอ่อน", "ต่อมหมวกไต"], a: 2, exp: "ตับอ่อนผลิตฮอร์โมน (ไร้ท่อ) และผลิตน้ำย่อย (มีท่อ)" },
+            { q: "กลไก Negative feedback หมายถึงอะไร?", c: ["ผลลัพธ์ไปกระตุ้นสิ่งเร้าให้เพิ่มขึ้น", "ผลลัพธ์ไปยับยั้งหรือลดสิ่งเร้าลง", "ร่างกายโจมตีเซลล์ของตัวเอง", "ฮอร์โมนถูกทำลายทิ้ง"], a: 1, exp: "เป็นกลไกรักษาสมดุล (Homeostasis) โดยการยับยั้งต้นเหตุเมื่อระดับฮอร์โมนเพียงพอแล้ว" },
+            { q: "เซลล์เป้าหมายสามารถตอบสนองต่อฮอร์โมนเฉพาะเจาะจงได้ เพราะอะไร?", c: ["มีตัวรับ (Receptors) ที่จำเพาะ", "มีนิวเคลียส", "มี DNA", "มีเอนไซม์"], a: 0, exp: "ฮอร์โมนจะจับกับเซลล์ที่มีตัวรับ (Receptor) ที่มีรูปร่างเข้ากันได้เท่านั้น เหมือนแม่กุญแจกับลูกกุญแจ" }
         ],
         bosses: [
-            { id: 0, name: "GLUCOSE CRISIS", desc: "Patient consumed 5 donuts. Blood sugar spiking!", hp: 60, weakness: "Insulin", q_indices: [0, 1, 3] },
-            { id: 1, name: "THYROID STORM", desc: "Metabolism out of control. Dangerously high HR!", hp: 60, weakness: "Negative Feedback", q_indices: [5, 6, 7] },
-            { id: 2, name: "STRESS OVERLOAD", desc: "Final exam week panic attack!", hp: 60, weakness: "Cortisol", q_indices: [10, 11, 12] },
-            { id: 3, name: "DEHYDRATION DESERT", desc: "Lost in desert, water levels critical!", hp: 60, weakness: "ADH", q_indices: [15, 16, 19] },
-            { id: 4, name: "ENDOCRINE CHAOS", desc: "Total system failure! Restore the balance!", hp: 100, weakness: "Knowledge", q_indices: [25, 26, 27, 28, 29] }
+            { id: 0, name: "GLUCOSE CRISIS", desc: "ผู้ป่วยกินโดนัทไป 5 ชิ้น น้ำตาลในเลือดพุ่งปรี๊ด!", hp: 60, weakness: "Insulin", q_indices: [0, 1, 3] },
+            { id: 1, name: "THYROID STORM", desc: "ระบบเผาผลาญเสียสมดุล หัวใจเต้นแรงอันตราย!", hp: 60, weakness: "Negative Feedback", q_indices: [5, 6, 7] },
+            { id: 2, name: "STRESS OVERLOAD", desc: "สัปดาห์สอบไฟนอล แพนิคแอคแทค!", hp: 60, weakness: "Cortisol", q_indices: [10, 11, 12] },
+            { id: 3, name: "DEHYDRATION DESERT", desc: "หลงทางในทะเลทราย ขาดน้ำขั้นวิกฤต!", hp: 60, weakness: "ADH", q_indices: [15, 16, 19] },
+            { id: 4, name: "ENDOCRINE CHAOS", desc: "ระบบล้มเหลวทั้งหมด! กอบกู้สมดุลกลับมาให้ได้!", hp: 100, weakness: "Knowledge", q_indices: [25, 26, 27, 28, 29] }
         ]
     };
 
-    const BOARD_SPACES = 25; // 25 nodes
+    const BOARD_SPACES = 25;
     const NODE_TYPES = ["START", "PANCREAS", "CRISIS", "THYROID", "RANDOM", "ADRENAL", "BOSS", "CRISIS", "PITUITARY", "RANDOM", "PINEAL", "CRISIS", "BOSS", "PANCREAS", "RANDOM", "THYROID", "CRISIS", "ADRENAL", "BOSS", "PITUITARY", "CRISIS", "PINEAL", "RANDOM", "CRISIS", "FINAL BOSS"];
 
     /* ================= SYSTEM STATE ================= */
@@ -403,7 +408,6 @@
     }
 
     function renderTokens() {
-        // Remove existing
         document.querySelectorAll('.player-token').forEach(el => el.remove());
         
         players.forEach(p => {
@@ -412,7 +416,6 @@
                 let token = document.createElement('div');
                 token.className = 'player-token';
                 token.innerText = p.id + 1;
-                // Offset slightly if multiple players
                 token.style.transform = `translate(${p.id * 10}px, ${p.id * -5}px)`;
                 node.appendChild(token);
             }
@@ -465,7 +468,7 @@
     function checkBalancePenalty(p) {
         if(p.balance < 40 || p.balance > 70) {
             p.hp -= 5;
-            showFloatingText("Unbalanced! -5 HP", "var(--neon-red)");
+            showFloatingText("สมดุลเสีย! -5 HP", "var(--neon-red)");
         }
     }
 
@@ -484,7 +487,7 @@
     function endTurn() {
         updateDashboard();
         checkGameOver();
-        if(inBossBattle) return; // Wait for boss logic
+        if(inBossBattle) return; 
         
         currentPlayerIndex = (currentPlayerIndex + 1) % numPlayers;
         document.getElementById('turn-indicator').innerText = `TURN: ${players[currentPlayerIndex].name}`;
@@ -521,7 +524,7 @@
         document.getElementById('crisis-title').innerText = forcedQ !== null ? "BOSS ATTACK" : "⚠️ HORMONE CRISIS";
         document.getElementById('crisis-desc').innerText = currentQuestion.q;
         document.getElementById('hint-text').style.display = 'none';
-        document.getElementById('hint-text').innerText = `Hint: ${currentQuestion.exp.substring(0, 20)}...`;
+        document.getElementById('hint-text').innerText = `Hint: ${currentQuestion.exp.substring(0, 30)}...`;
         
         let cDiv = document.getElementById('crisis-choices');
         cDiv.innerHTML = '';
@@ -554,7 +557,7 @@
         if(correct) {
             playTone(800, "sine", 0.1);
             playTone(1200, "sine", 0.2, 0.1);
-            title = "✓ CORRECT!";
+            title = "✓ ถูกต้อง!";
             desc = currentQuestion.exp;
             
             if(inBossBattle) {
@@ -564,22 +567,21 @@
                 p.score += 20;
                 updateBossUI();
             } else {
-                effect = "+10 Score, Balance +5 toward center";
+                effect = "+10 Score, Balance ฟื้นฟู 5 หน่วย";
                 p.score += 10;
                 p.knowledge += 1;
-                // Move balance towards 55
                 if(p.balance < 55) p.balance += 5; else if (p.balance > 55) p.balance -= 5;
             }
         } else {
             playTone(200, "sawtooth", 0.3);
-            title = "✗ INCORRECT!";
-            desc = `The correct answer was: ${currentQuestion.c[currentQuestion.a]}\n${currentQuestion.exp}`;
+            title = "✗ ผิดพลาด!";
+            desc = `คำตอบที่ถูกคือ: ${currentQuestion.c[currentQuestion.a]}\n${currentQuestion.exp}`;
             
             if(inBossBattle) {
                 effect = "Player HP -15!";
                 p.hp -= 15;
             } else {
-                effect = "HP -10, Balance fluctuates";
+                effect = "HP -10, Balance ผิดปกติ!";
                 p.hp -= 10;
                 p.balance += (Math.random() > 0.5 ? 10 : -10);
             }
@@ -591,10 +593,10 @@
     /* ================= RANDOM EVENTS ================= */
     function triggerRandomEvent() {
         let events = [
-            { text: "Drank 2 liters of water. ADH drops.", bal: +10 },
-            { text: "Missed sleep. Melatonin irregular. Stress up.", hp: -5, bal: -10 },
-            { text: "Ate healthy meal. Insulin steady.", hp: +10, bal: (players[currentPlayerIndex].balance < 55 ? 5 : -5) },
-            { text: "Panic attack! Adrenaline surge.", bal: +15, hp: -5 }
+            { text: "ดื่มน้ำ 2 ลิตร ADH ลดลง", bal: +10 },
+            { text: "อดนอน เมลาโทนินผิดปกติ ความเครียดพุ่ง", hp: -5, bal: -10 },
+            { text: "กินอาหารเพื่อสุขภาพ อินซูลินทำงานคงที่", hp: +10, bal: (players[currentPlayerIndex].balance < 55 ? 5 : -5) },
+            { text: "ตกใจสุดขีด! อะดรีนาลินพุ่งทะลุ", bal: +15, hp: -5 }
         ];
         let e = events[Math.floor(Math.random()*events.length)];
         let p = players[currentPlayerIndex];
@@ -618,7 +620,7 @@
         playTone(150, "square", 0.5);
         playTone(100, "square", 1.0, 0.5);
         
-        showResult(`BOSS ENCOUNTER: ${currentBoss.name}`, "Prepare to answer critical questions or use cards to defeat the boss!", "FIGHT!", false);
+        showResult(`BOSS ENCOUNTER: ${currentBoss.name}`, "เตรียมตอบคำถามต่อเนื่อง หรือใช้การ์ดโจมตีบอส!", "FIGHT!", false);
     }
 
     function updateBossUI() {
@@ -632,7 +634,7 @@
             if(currentBoss.name === "ENDOCRINE CHAOS") {
                 triggerVictory();
             } else {
-                showResult("BOSS DEFEATED!", "Hormones stabilized for now.", "+100 Score!", true);
+                showResult("BOSS DEFEATED!", "ฮอร์โมนกลับมาเสถียรชั่วคราว", "+100 Score!", true);
             }
         }
     }
@@ -653,7 +655,6 @@
         if(checkGameOver()) return;
 
         if(inBossBattle && bossCurrentHP > 0) {
-            // Boss attacks next
             setTimeout(() => {
                 let randomQ = currentBoss.q_indices[Math.floor(Math.random() * currentBoss.q_indices.length)];
                 openQuiz(randomQ);
@@ -668,7 +669,7 @@
         document.getElementById('qr-modal').style.display = 'flex';
         document.getElementById('qr-result').style.display = 'none';
         document.getElementById('btn-qr-close').style.display = 'none';
-        playTone(1000, "sine", 1.5); // fake scan sound
+        playTone(1000, "sine", 1.5);
         
         setTimeout(() => {
             let h = GAME_DATA.hormones[Math.floor(Math.random() * GAME_DATA.hormones.length)];
@@ -676,7 +677,6 @@
             document.getElementById('qr-result').style.display = 'block';
             document.getElementById('btn-qr-close').style.display = 'inline-block';
             
-            // Give to player
             players[currentPlayerIndex].cards.push(h);
         }, 2000);
     }
@@ -700,18 +700,17 @@
 
     function useCard(idx) {
         if(!inBossBattle) {
-            showFloatingText("Can only use in Boss Battle!", "var(--neon-yellow)");
+            showFloatingText("ใช้ได้ในฉากสู้ Boss เท่านั้น!", "var(--neon-yellow)");
             return;
         }
         let card = players[currentPlayerIndex].cards[idx];
         
-        // Simple logic: if card name or gland is related to boss weakness, massive damage
         let damage = 10;
-        let msg = "Used " + card.name;
+        let msg = "ใช้ฮอร์โมน " + card.name;
         
         if(currentBoss.weakness.includes(card.name) || currentBoss.desc.includes(card.gland)) {
             damage = 40;
-            msg = "COMBO! " + card.name + " hits Boss Weakness!";
+            msg = "COMBO! " + card.name + " โจมตีจุดอ่อน Boss!";
             playTone(800, "square", 0.1); playTone(1200, "square", 0.2, 0.1);
         } else {
             playTone(400, "triangle", 0.2);
@@ -730,7 +729,7 @@
         if(p.hp <= 0 || p.balance <= 0 || p.balance >= 100) {
             document.getElementById('end-title').innerText = "GAME OVER";
             document.getElementById('end-title').style.color = "var(--neon-red)";
-            document.getElementById('end-reason').innerText = "Hormonal Balance Collapsed or HP Reached 0.";
+            document.getElementById('end-reason').innerText = "สมดุลฮอร์โมนล้มเหลว หรือ HP หมดแล้ว";
             showStatsEnd(p);
             return true;
         }
@@ -741,7 +740,7 @@
         let p = players[currentPlayerIndex];
         document.getElementById('end-title').innerText = "SYSTEM RESTORED";
         document.getElementById('end-title').style.color = "var(--neon-green)";
-        document.getElementById('end-reason').innerText = "Congratulations! You have restored Endocrine Balance.";
+        document.getElementById('end-reason').innerText = "ยินดีด้วย! คุณสามารถรักษาสมดุลระบบต่อมไร้ท่อได้สำเร็จ";
         showStatsEnd(p);
     }
 
@@ -759,7 +758,7 @@
     }
 
     function endGame(type) {
-        if(type === 'abort' && confirm("Abort current mission?")) location.reload();
+        if(type === 'abort' && confirm("ต้องการออกจากการทำภารกิจใช่หรือไม่?")) location.reload();
     }
 
     /* ================= UTILS ================= */
@@ -794,6 +793,7 @@
         f.style.textShadow = `0 0 10px ${color}`;
         f.style.zIndex = '999';
         f.style.pointerEvents = 'none';
+        f.style.fontFamily = "'Sarabun', sans-serif";
         f.style.animation = 'scan 1.5s ease-out';
         document.body.appendChild(f);
         setTimeout(() => f.remove(), 1500);
